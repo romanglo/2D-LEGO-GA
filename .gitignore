@@ -104,15 +104,13 @@ venv.bak/
 .mypy_cache/
 
 # vscode
+*.code-workspace
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
 .vs/
-
 .vscode-test/**
 .vscode-test
-
 **/.vscode/.ropeproject/**
