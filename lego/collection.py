@@ -23,9 +23,15 @@ class LegoBrickCollection(object):
         Gets a LegoBrickCollection instance with the same attributes.
     getRandomBrick() -> LegoBrick:
         Gets a random brick from the collection.
+    getBrick(width: int, height: int) -> LegoBrick:
+        Gets a specific size brick from the collection if it available.
+    returnBrick(brick: LegoBrick) -> bool:
+        Returns a brick to the collection.
     getAmountOfAvailableBricks() -> int:
         Gets the amount of available bricks
     """
+
+    __next_brick_id = 1
 
     def __init__(self):
         self.__initialized = False
@@ -93,6 +99,7 @@ class LegoBrickCollection(object):
         self.__startBricks = list(availableBricks)
         self.__availableBricks = availableBricks
         self.__amountOfAvailableBricks = sum(availableBricks)
+        self.__generatedBricks = []
         self.__initialized = True
 
     def getRandomBrick(self) -> LegoBrick:
@@ -102,7 +109,7 @@ class LegoBrickCollection(object):
         Returns
         -------
         LegoBrick
-            selected brick.
+            random brick if the collection doesn't empty, None if empty.
 
         Raises
         ------
@@ -122,7 +129,70 @@ class LegoBrickCollection(object):
             if self.__availableBricks[index] != 0:
                 self.__availableBricks[index] -= 1
                 self.__amountOfAvailableBricks -= 1
-                return self.__brickTypes[index].copy()
+                copied = self.__brickTypes[index].copy()
+                copied.setId(LegoBrickCollection.__next_brick_id)
+                self.__generatedBricks.append(copied)
+                LegoBrickCollection.__next_brick_id += 1
+                return copied
+
+    def getBrick(self, width: int, height: int) -> LegoBrick:
+        """
+        Gets a specific size brick from the collection if it available.
+
+        Returns
+        -------
+        LegoBrick
+            requested brick if available or None if didn't.
+
+        Raises
+        ------
+        NotInitializedException
+            If this method called before initialize() method
+        """
+        if not self.__initialized:
+            raise NotInitializedException(
+                "The instance used before calling initialize method")
+
+        if self.__amountOfAvailableBricks == 0:
+            return None
+
+        for i in range(len(self.__brickTypes)):
+            brick = self.__brickTypes[i]
+            if brick.getWidth() == width and brick.getHeight() == height:
+                if (self.__availableBricks[i] < 1):
+                    return None
+                self.__availableBricks[i] -= 1
+                copied = brick.copy()
+                copied.setId(LegoBrickCollection.__next_brick_id)
+                self.__generatedBricks.append(copied)
+                LegoBrickCollection.__next_brick_id += 1
+                return copied
+
+        return None
+
+    def returnBrick(self, brick: LegoBrick) -> bool:
+        """
+        Returns a brick to the collection.
+
+        Returns
+        -------
+        bool
+            True if the brick belong to the collection and returned, and false if doesn't.
+
+        Raises
+        ------
+        NotInitializedException
+            If this method called before initialize() method
+        """
+        if not self.__initialized:
+            raise NotInitializedException(
+                "The instance used before calling initialize method")
+
+        if brick in self.__generatedBricks:
+            self.__generatedBricks.remove(brick)
+            return True
+
+        return False
 
     def getAmountOfAvailableBricks(self) -> int:
         """
@@ -159,6 +229,7 @@ class LegoBrickCollection(object):
             copy.__brickTypes = list(self.__brickTypes)
             copy.__startBricks = list(self.__startBricks)
             copy.__probabilities = list(self.__probabilities)
+            copy.__generatedBricks = list(self.__generatedBricks)
             copy.__initialized = True
         return copy
 
@@ -183,6 +254,6 @@ class LegoBrickCollection(object):
         if not self.__initialized:
             return "LegoBrickCollection[Not initialized]"
 
-        return "LegoBrickCollection[BricksTypes=%s,\nStartBricks=%s,\nAvailableBricks=%s]" % (
+        return "LegoBrickCollection[BricksTypes=%s,\nStartBricks=%s,\nAvailableBricks=%s,\nGeneratedBricks=%s]" % (
             str(self.__brickTypes), str(self.__startBricks),
-            str(self.__availableBricks))
+            str(self.__availableBricks), str(self.__generatedBricks))

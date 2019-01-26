@@ -7,6 +7,10 @@ class LegoBrick(object):
 
     Methods
     -------
+    setId(width: int)
+        Sets the ID of the Lego brick.
+    getId() -> int:
+        Gets the ID of the LEGO brick.
     setWidth(width: int)
         Sets the width of the Lego brick.
     getWidth() -> int:
@@ -22,7 +26,9 @@ class LegoBrick(object):
         Gets a LegoBrick instance with the same attributes.
     """
 
-    def __init__(self, width: int, height: int):
+    NONE_ID = -1
+
+    def __init__(self, width: int, height: int, id: int = NONE_ID):
         """
         LegoBrick constuctor.
 
@@ -40,6 +46,30 @@ class LegoBrick(object):
         """
         self.setWidth(width)
         self.setHeight(height)
+        self.__id = id
+
+    def setId(self, id: int):
+        """
+        Sets the id of the Lego brick.
+
+        Parameters
+        ----------
+        id : int
+            The brick ID.
+
+        """
+        self.__id = id
+
+    def getId(self) -> int:
+        """
+        Gets the ID of the LEGO brick.
+
+        Returns
+        -------
+        int
+            the ID of the LEGO brick.
+        """
+        return self.__id
 
     def setWidth(self, width: int):
         """
@@ -120,7 +150,10 @@ class LegoBrick(object):
         LegoBrick
             copied instance.
         """
-        return LegoBrick(self.__width, self.__height)
+        return LegoBrick(self.__width, self.__height, self.__id)
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
     def __str__(self):
         return self.__toString()
@@ -129,5 +162,5 @@ class LegoBrick(object):
         return self.__toString()
 
     def __toString(self) -> str:
-        return "LegoBrick[width=%d, height=%d, area=%d]" % (
-            self.getWidth(), self.getHeight(), self.getArea())
+        return "LegoBrick[id=%d, width=%d, height=%d, area=%d]" % (
+            self.getId(), self.getWidth(), self.getHeight(), self.getArea())

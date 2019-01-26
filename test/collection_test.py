@@ -105,6 +105,31 @@ class LegoBrickCollection_Test(unittest.TestCase):
         self.assertEqual(col.getAmountOfAvailableBricks(),
                          colCopy.getAmountOfAvailableBricks())
 
+    def test_randomBrickId(self):
+        col = LegoBrickCollection()
+        col.initialize(5, list([LegoBrick(1, 1)]))
+        colCopy = col.copy()
+        self.assertNotEqual(col.getRandomBrick().getId(),
+                            colCopy.getRandomBrick().getId())
+        self.assertEqual(col.getRandomBrick().getId() + 1,
+                         colCopy.getRandomBrick().getId())
+        self.assertEqual(colCopy.getRandomBrick().getId() + 1,
+                         col.getRandomBrick().getId())
+
+    def test_getSpecificBrick(self):
+        col = LegoBrickCollection()
+        col.initialize(10, list([LegoBrick(1, 1)]))
+        self.assertIsNotNone(col.getBrick(1, 1))
+        self.assertIsNone(col.getBrick(2, 1))
+
+    def test_returnBrick(self):
+        col = LegoBrickCollection()
+        col.initialize(10, list([LegoBrick(1, 1)]))
+        b = col.getRandomBrick()
+        self.assertFalse(col.returnBrick(LegoBrick(1, 1)))
+        self.assertTrue(col.returnBrick(b))
+        self.assertFalse(col.returnBrick(b))
+
 
 if __name__ == '__main__':
     unittest.main()
