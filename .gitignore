@@ -103,6 +103,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# linter configuration file
+setup.cfg
+
 # vscode
 *.code-workspace
 .vscode/*
