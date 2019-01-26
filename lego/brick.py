@@ -1,6 +1,4 @@
-from typing import Dict, List, Optional, Set, Tuple
-
-import numpy
+# brick.py
 
 
 class LegoBrick(object):
@@ -17,10 +15,10 @@ class LegoBrick(object):
         Sets the height of the Lego brick.
     getHeight() -> int:
         Gets the height of the LEGO brick.
-    getArea(self) -> int:
+    getArea() -> int:
         Gets the area of the LEGO brick,
         area calculation is with width * height.
-    copy(self) -> LegoBrick :
+    copy() -> LegoBrick :
         Gets a LegoBrick instance with the same attributes.
     """
 
@@ -133,116 +131,3 @@ class LegoBrick(object):
     def __toString(self) -> str:
         return "LegoBrick[width=%d, height=%d, area=%d]" % (
             self.getWidth(), self.getHeight(), self.getArea())
-
-
-class LegoBrickCollection(object):
-    """
-    A class used to represent a Collection of LegoBrick which select enough bricks to cover an area.
-
-    Methods
-    -------
-    getRandomBrick(self) -> LegoBrick:
-        Gets a random brick from the collection.
-    getAmountOfAvailableBricks(self) -> int:
-        Gets the amount of available bricks
-    """
-
-    def __init__(self,
-                 area: int,
-                 bricks: List[LegoBrick],
-                 uniform: bool = True):
-        """
-        LegoBrickCollection constuctor.
-
-        Parameters
-        ----------
-        area : int
-            The area to cover.
-        bricks : List[LegoBrick]
-            List of bricks to create the collection.
-        uniform : bool
-            If true the selection of bricks will keep uniform probabilty.
-        Raises
-        ------
-        ValueError
-            If the area isn't bigger then 0.
-        """
-        if (area < 1):
-            raise ValueError("Area must be bigger then 1!")
-        if (len(bricks) == 0):
-            self.__amountOfAvailableBricks = 0
-            return
-
-        bricks.sort(key=lambda x: x.getArea())
-        self.__brickTypes = list(bricks)
-
-        areaSum = numpy.sum([brick.getArea() for brick in bricks])
-        probabilities = []
-        for brick in bricks:
-            probabilities.append(brick.getArea() / areaSum)
-        self.__probabilities = probabilities
-
-        availableBricks = [0] * len(bricks)
-        if (uniform):
-            currentArea = 0
-            i = 0
-            while (currentArea < area):
-                availableBricks[i] += 1
-                currentArea += bricks[i].getArea()
-                i += 1
-                if (i == len(bricks)):
-                    i = 0
-        else:
-            currentArea = 0
-            while (currentArea < area):
-                selectedBrick = numpy.random.choice(
-                    bricks, 1, replace=False, p=probabilities)[0]
-                selectedBrickIndex = bricks.index(selectedBrick)
-                availableBricks[selectedBrickIndex] += 1
-                currentArea += selectedBrick.getArea()
-
-        self.__startBricks = list(availableBricks)
-        self.__availableBricks = availableBricks
-        self.__amountOfAvailableBricks = sum(availableBricks)
-
-    def getRandomBrick(self) -> LegoBrick:
-        """
-        Gets a random brick from the collection.
-
-        Returns
-        -------
-        LegoBrick
-            selected brick.
-        """
-        if self.__amountOfAvailableBricks == 0:
-            return None
-        while True:
-            selectedBrick = numpy.random.choice(
-                self.__brickTypes, 1, replace=False, p=self.__probabilities)[0]
-            index = self.__brickTypes.index(selectedBrick)
-            if self.__availableBricks[index] != 0:
-                self.__availableBricks[index] -= 1
-                self.__amountOfAvailableBricks -= 1
-                return self.__brickTypes[index].copy()
-
-    def getAmountOfAvailableBricks(self) -> int:
-        """
-        Gets the amount of available bricks
-
-        Returns
-        -------
-        int
-            The amount of available bricks
-        """
-        return self.__amountOfAvailableBricks
-
-    def __str__(self):
-        return self.__toString()
-
-    def __repr__(self):
-        return self.__toString()
-
-    def __toString(self) -> str:
-        return "LegoBrickCollection[BricksTypes=%s,\nStartBricks=%s,\nAvailableBricks=%s]" % (
-            str(self.__brickTypes), str(self.__startBricks),
-            str(self.__availableBricks))
