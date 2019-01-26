@@ -1,9 +1,11 @@
+# collection.py
+
 from typing import List
 
-import numpy
+import numpy as np
 
 from lego.brick import LegoBrick
-from lego.execptions import NotInitializedException
+from lego.exceptions import NotInitializedException
 
 
 class LegoBrickCollection(object):
@@ -29,6 +31,8 @@ class LegoBrickCollection(object):
         Returns a brick to the collection.
     getAmountOfAvailableBricks() -> int:
         Gets the amount of available bricks
+    getNumberOfBricksTypes() -> int:
+        Gets the number of bricks typed in the collection.
     """
 
     __next_brick_id = 1
@@ -52,10 +56,13 @@ class LegoBrickCollection(object):
             List of bricks to create the collection.
         uniform : bool
             If true the selection of bricks will keep uniform probabilty.
+
         Raises
         ------
         ValueError
             If the area isn't bigger then 0.
+        TypeError
+            If the List[LegoBrick] is None
         """
 
         if self.__initialized:
@@ -63,42 +70,38 @@ class LegoBrickCollection(object):
 
         if (area < 1):
             raise ValueError("Area must be bigger then 1!")
+        if bricks is None:
+            raise TypeError("bricks list is none!")
+
+        bricks.sort(key=lambda x: x.getArea())
+        self.__brickTypes = list(bricks)
+
         if (len(bricks) == 0):
             self.__amountOfAvailableBricks = 0
             self.__initialized = True
             return
 
-        bricks.sort(key=lambda x: x.getArea())
-        self.__brickTypes = list(bricks)
-
-        areaSum = numpy.sum([brick.getArea() for brick in bricks])
+        areaSum = np.sum([brick.getArea() for brick in bricks])
         probabilities = []
         for brick in bricks:
             probabilities.append(brick.getArea() / areaSum)
         self.__probabilities = probabilities
 
-        availableBricks = [0] * len(bricks)
         if (uniform):
-            currentArea = 0
-            i = 0
-            while (currentArea < area):
-                availableBricks[i] += 1
-                currentArea += bricks[i].getArea()
-                i += 1
-                if (i == len(bricks)):
-                    i = 0
+            amount = round(area / areaSum)
+            self.__availableBricks = np.full(len(bricks), amount)
         else:
+            self.__availableBricks = np.zeros(len(bricks), dtype=np.int32)
             currentArea = 0
             while (currentArea < area):
-                selectedBrick = numpy.random.choice(
+                selectedBrick = np.random.choice(
                     bricks, 1, replace=False, p=probabilities)[0]
                 selectedBrickIndex = bricks.index(selectedBrick)
-                availableBricks[selectedBrickIndex] += 1
+                self.__availableBricks[selectedBrickIndex] += 1
                 currentArea += selectedBrick.getArea()
 
-        self.__startBricks = list(availableBricks)
-        self.__availableBricks = availableBricks
-        self.__amountOfAvailableBricks = sum(availableBricks)
+        self.__startBricks = list(self.__availableBricks)
+        self.__amountOfAvailableBricks = sum(self.__availableBricks)
         self.__generatedBricks = []
         self.__initialized = True
 
@@ -123,7 +126,7 @@ class LegoBrickCollection(object):
         if self.__amountOfAvailableBricks == 0:
             return None
         while True:
-            selectedBrick = numpy.random.choice(
+            selectedBrick = np.random.choice(
                 self.__brickTypes, 1, replace=False, p=self.__probabilities)[0]
             index = self.__brickTypes.index(selectedBrick)
             if self.__availableBricks[index] != 0:
@@ -190,9 +193,33 @@ class LegoBrickCollection(object):
 
         if brick in self.__generatedBricks:
             self.__generatedBricks.remove(brick)
+            for i in range(len(self.__brickTypes)):
+                if self.__brickTypes[i].getWidth() == brick.getWidth(
+                ) and self.__brickTypes[i].getHeight() == brick.getHeight():
+                    self.__availableBricks[i] += 1
+            self.__amountOfAvailableBricks += 1
             return True
 
         return False
+
+    def getNumberOfBricksTypes(self) -> int:
+        """
+        Gets the number of bricks typed in the collection.
+
+        Returns
+        -------
+        int
+            The number of bricks typed in the collection.
+
+        Raises
+        ------
+        NotInitializedException
+            If this method called before initialize() method
+        """
+        if not self.__initialized:
+            raise NotInitializedException(
+                "The instance used before calling initialize method")
+        return len(self.__brickTypes)
 
     def getAmountOfAvailableBricks(self) -> int:
         """
@@ -254,6 +281,6 @@ class LegoBrickCollection(object):
         if not self.__initialized:
             return "LegoBrickCollection[Not initialized]"
 
-        return "LegoBrickCollection[BricksTypes=%s,\nStartBricks=%s,\nAvailableBricks=%s,\nGeneratedBricks=%s]" % (
-            str(self.__brickTypes), str(self.__startBricks),
-            str(self.__availableBricks), str(self.__generatedBricks))
+        return "LegoBrickCollection[BricksTypes=%s, AmountOfAvailableBricks=%d, AvailableBricks=%s]" % (
+            str(self.__brickTypes), str(self.__amountOfAvailableBricks),
+            str(self.__availableBricks))

@@ -1,7 +1,7 @@
 """ Files named __init__.py are used to mark directories
     on disk as a Python package directories. """
 
-from lego.execptions import NotInitializedException
+from lego.exceptions import NotInitializedException
 
 from lego.brick import LegoBrick
 from lego.collection import LegoBrickCollection
