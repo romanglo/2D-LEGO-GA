@@ -55,7 +55,7 @@ class LegoBrickCollection(object):
         bricks : List[LegoBrick]
             List of bricks to create the collection.
         uniform : bool
-            If true the selection of bricks will keep uniform probabilty.
+            If true the selection of bricks will keep uniform probability.
 
         Raises
         ------

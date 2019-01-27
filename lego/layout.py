@@ -94,8 +94,10 @@ class LegoBrickLayout(object):
         self.__initialized = True
 
     def __createRandomLayout(self):
-        numberOfAttempts = round(
-            math.sqrt(self.__brickCollection.getNumberOfBricksTypes()))
+        # TODO ROMAN: Gives too "good" coverage, probably unnecessary and should be deleted.
+        # numberOfAttempts = round(
+        #     math.sqrt(self.__brickCollection.getNumberOfBricksTypes()))
+        numberOfAttempts = 1
         for i in range(self.__width):
             for j in range(self.__height):
                 if self.__brickCollection.getAmountOfAvailableBricks() == 0:
