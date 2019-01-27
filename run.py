@@ -79,13 +79,13 @@ def main(argv):
                     (generation, populationValue,
                      mustValuedItem.getCoveredArea(),
                      (mustValuedItem.getHeight() * mustValuedItem.getWidth())))
+                # print res matrix:
+                # resMat = mustValuedItem.getAreaMatrix()
+                # for i in range(mustValuedItem.getWidth()):
+                #     print("".join(("%5d" % x) for x in resMat[i]))
 
         ga.evaluate(
             nTimes=generations, generationResultHandler=GaResultHandler())
-
-        # resMat = res.getAreaMatrix()
-        # for i in range(res.getWidth()):
-        #     print("".join(("%5d" % x) for x in resMat[i]))
     except:
         print("Some error occurred during the running! Process aborted..")
 

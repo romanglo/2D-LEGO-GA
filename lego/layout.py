@@ -1,10 +1,11 @@
 # layout.py
 
 import math
+import random
+from enum import Enum
 from typing import List, Tuple
 
 import numpy as np
-import random
 
 from lego.brick import LegoBrick
 from lego.collection import LegoBrickCollection
@@ -41,6 +42,10 @@ class LegoBrickLayout(object):
     isSameCoverage(otherLayout: LegoBrickLayout) -> bool:
         Check if the received layer has exactly the same coverage.
     """
+
+    class Orientation(Enum):
+        VERTICAL = 1
+        HORIZONTAL = 2
 
     def __init__(self):
         self.__initialized = False
@@ -112,6 +117,7 @@ class LegoBrickLayout(object):
                         break
                     else:
                         self.__brickCollection.returnBrick(selectedBrick)
+        self.__layout.sort(key=lambda brickPos: (brickPos[0], brickPos[1]))
 
     def __tryAdd(self, row: int, column: int, brick: LegoBrick,
                  firstVertical: bool) -> bool:
@@ -133,7 +139,8 @@ class LegoBrickLayout(object):
                 if self.__area[i][j] != 0:
                     return False
 
-        self.__layout.append((row, column, brick))
+        self.__layout.append((row, column, brick,
+                              LegoBrickLayout.Orientation.HORIZONTAL))
 
         for i in range(row, row + brick.getHeight()):
             self.__area[i][column:column + brick.getWidth()] = brick.getId()
@@ -152,7 +159,8 @@ class LegoBrickLayout(object):
                 if self.__area[i][j] != 0:
                     return False
 
-        self.__layout.append((row, column, brick))
+        self.__layout.append((row, column, brick,
+                              LegoBrickLayout.Orientation.VERTICAL))
 
         for i in range(row, row + brick.getWidth()):
             self.__area[i][column:column + brick.getHeight()] = brick.getId()
@@ -175,7 +183,8 @@ class LegoBrickLayout(object):
             copy.__height = self.__height
             copy.__area = self.__area.copy()
             copy.__coveredArea = self.__coveredArea
-            copy.__layout = list(self.__layout)
+            copy.__layout = [[brick[0], brick[1], brick[2].copy(), brick[3]]
+                             for brick in self.__layout]
             copy.__brickCollection = self.__brickCollection.copy()
             copy.__initialized = True
         return copy
@@ -210,13 +219,13 @@ class LegoBrickLayout(object):
                 "The instance used before calling initialize method")
         return self.__area
 
-    def getAreaBricks(self) -> List[Tuple[int, int, LegoBrick]]:
+    def getAreaBricks(self) -> List[Tuple[int, int, LegoBrick, Enum]]:
         """
         Gets a list of all the bricks in the layer and their location on the layer.
 
         Returns
         -------
-        List[Tuple[int, int, LegoBrick]]
+        List[Tuple[int, int, LegoBrick, LegoBrickLayout.Orientation]]
             list of all the bricks in the layer and their location on the layer.
 
         Raises
@@ -286,7 +295,7 @@ class LegoBrickLayout(object):
                 "The instance used before calling initialize method")
         return self.__height
 
-    def validateLayer(self):
+    def validateLayer(self) -> bool:
         """
         Validate the layer after changes from outside.
 
@@ -299,9 +308,36 @@ class LegoBrickLayout(object):
             raise NotInitializedException(
                 "The instance used before calling initialize method")
 
-        raise NotImplementedError("validateLayer not implemented yet!")
+        try:
+            self.__layout.sort(key=lambda brickPos: (brickPos[0], brickPos[1]))
 
-    def isSameCoverage(self, otherLayout) -> bool:
+            index = 0
+            for x in range(self.__width):
+                for y in range(self.__height):
+                    if index < len(self.__layout) and self.__layout[index][
+                            0] == x and self.__layout[index][1] == y:
+                        if self.__layout[index][
+                                3] == LegoBrickLayout.Orientation.VERTICAL:
+                            for i in range(
+                                    x, x + self.__layout[index][2].getWidth()):
+                                self.__area[index][
+                                    y:y + self.__layout[index][2].getHeight(
+                                    )] = self.__layout[index][2].getId()
+                        else:
+                            for i in range(
+                                    x,
+                                    x + self.__layout[index][2].getHeight()):
+                                self.__area[index][
+                                    y:y + self.__layout[index][2].getWidth(
+                                    )] = self.__layout[index][2].getId()
+                        index += 1
+                    else:
+                        self.__area[x][y] = 0
+        except:
+            return False
+        return True
+
+    def hasSameCoverage(self, otherLayout) -> bool:
         """
         Check if the received layer has exactly the same coverage.
 
@@ -328,16 +364,20 @@ class LegoBrickLayout(object):
             return False
 
         if self.__width != otherLayout.getWidth(
-        ) or self.__height != otherLayout.getHeight() or len(
-                self.__layout) != len(otherLayout.getAreaBricks()):
+        ) or self.__height != otherLayout.getHeight():
             return False
 
-        otherArea = otherLayout.getAreaMatrix()
-        for i in range(self.__width):
-            for j in range(self.__height):
-                if not ((self.__area[i][j] == 0 and otherArea[i][j] == 0) or
-                        (self.__area[i][j] != 0 and otherArea[i][j] != 0)):
-                    return False
+        otherLayout = otherLayout.getAreaBricks()
+        if len(self.__layout) != len(otherLayout):
+            return False
+
+        for i in range(len(self.__layout)):
+            if self.__layout[i][0] != otherLayout[i][0] or self.__layout[
+                    i][1] != otherLayout[i][1] or self.__layout[i][2].getWidth(
+                    ) != otherLayout[i][2].getWidth() or self.__layout[i][
+                        2].getHeight() != otherLayout[i][2].getHeight(
+                        ) or self.__layout[i][3] != otherLayout[i][3]:
+                return False
         return True
 
     def __str__(self):

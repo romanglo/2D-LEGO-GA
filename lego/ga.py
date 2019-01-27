@@ -1,11 +1,12 @@
+from abc import ABC, abstractmethod
+from typing import List
+
 import numpy as np
 
 from lego.brick import LegoBrick
 from lego.collection import LegoBrickCollection
 from lego.exceptions import NotInitializedException
 from lego.layout import LegoBrickLayout
-
-from abc import ABC, abstractmethod
 
 
 class LegoBrickGA(object):
@@ -24,17 +25,6 @@ class LegoBrickGA(object):
                  brickCollection: LegoBrickCollection,
                  populationSize: int,
                  mutationThreshold=float):
-        self.__validateInitParameters(width, height, brickCollection,
-                                      populationSize, mutationThreshold)
-        self.__generatePopulations()
-        pass
-
-    def __validateInitParameters(self,
-                                 width: int,
-                                 height: int,
-                                 brickCollection: LegoBrickCollection,
-                                 populationSize: int,
-                                 mutationThreshold=float):
         if width < 1:
             raise ValueError("width must be bigger then 1!")
         self.__width = width
@@ -56,7 +46,30 @@ class LegoBrickGA(object):
             raise ValueError("mutation threshold must be in range [0.0,1.0]!")
         self.__mutationThreshold = mutationThreshold
 
-    def __generatePopulations(self):
+    def evaluate(self,
+                 nTimes=1,
+                 generationResultHandler: GaResultHandler = None
+                 ) -> LegoBrickLayout:
+        population = self.__generatePopulations()
+        self.__invokeHandler(generationResultHandler, population)
+
+        for i in range(nTimes):
+            population = self.__evaluate(population)
+            self.__invokeHandler(generationResultHandler, population)
+
+        return max(population, key=lambda item: item.getCoveredArea())
+
+    def __invokeHandler(self,
+                        generationResultHandler: GaResultHandler,
+                        population: List[LegoBrickLayout],
+                        async: bool = False):
+        if generationResultHandler is not None:
+            bestItem = max(population, key=lambda item: item.getCoveredArea())
+            populationValue = np.sum(
+                [item.getCoveredArea() for item in population])
+            generationResultHandler.onGaResult(0, populationValue, bestItem)
+
+    def __generatePopulations(self) -> List[LegoBrickLayout]:
         population = []
         while len(population) < self.__populationSize:
             bricks = self.__brickCollection.copy()
@@ -66,21 +79,36 @@ class LegoBrickGA(object):
                 raise NotInitializedException(
                     "Failed on try to initialize LegoBrickLayout")
             population.append(layout)
-        self.__population = population
+        return population
 
-    def evaluate(self,
-                 nTimes=1,
-                 generationResultHandler: GaResultHandler = None
-                 ) -> LegoBrickLayout:
-
+    def __evaluate(self,
+                   population: List[LegoBrickLayout]) -> List[LegoBrickLayout]:
         populationValue = np.sum(
-            [item.getCoveredArea() for item in self.__population])
+            [item.getCoveredArea() for item in population])
         probabilities = []
-        for item in self.__population:
+        for item in population:
             probabilities.append(item.getCoveredArea() / populationValue)
 
-        bestItem = max(
-            self.__population, key=lambda item: item.getCoveredArea())
-        if generationResultHandler is not None:
-            generationResultHandler.onGaResult(1, populationValue, bestItem)
-        return bestItem
+        newPopulation = []
+        while (len(newPopulation) < len(population)):
+            select = np.random.choice(
+                population, 2, replace=False, p=probabilities)
+            children = self.__crossover(select[0], select[1])
+            mutatedChildren = self.__mutate(children[0], children[1])
+
+            value = [
+                select[0], select[1], mutatedChildren[0], mutatedChildren[1]
+            ].sort(
+                key=lambda item: item.getCoveredArea(), reverse=True)
+            # TODO ROMAN: continue ga algorithm
+            break
+
+        return population
+
+    def __crossover(self, firstParent: LegoBrickLayout,
+                    secondParent: LegoBrickLayout) -> List[LegoBrickLayout]:
+        return [firstParent, secondParent]
+
+    def __mutate(self, firstChild: LegoBrickLayout,
+                 secondChild: LegoBrickLayout) -> List[LegoBrickLayout]:
+        return [firstChild, secondChild]
