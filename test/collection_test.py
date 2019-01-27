@@ -74,7 +74,7 @@ class LegoBrickCollection_Test(unittest.TestCase):
 
     def test_nonUniformCollection(self):
         col = LegoBrickCollection()
-        col.initialize(5, list([LegoBrick(1, 1)]), False)
+        col.initialize(10, list([LegoBrick(1, 1), LegoBrick(1, 2)]), False)
         amount = col.getAmountOfAvailableBricks()
         while amount != 0:
             rnd = col.getRandomBrick()

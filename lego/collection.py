@@ -81,14 +81,13 @@ class LegoBrickCollection(object):
             self.__initialized = True
             return
 
-        areaSum = np.sum([brick.getArea() for brick in bricks])
+        allBrickArea = np.sum([brick.getArea() for brick in bricks])
         probabilities = []
         for brick in bricks:
-            probabilities.append(brick.getArea() / areaSum)
-        self.__probabilities = probabilities
+            probabilities.append(brick.getArea() / allBrickArea)
 
         if (uniform):
-            amount = round(area / areaSum)
+            amount = round(area / allBrickArea)
             self.__availableBricks = np.full(len(bricks), amount)
         else:
             self.__availableBricks = np.zeros(len(bricks), dtype=np.int32)
@@ -125,18 +124,30 @@ class LegoBrickCollection(object):
 
         if self.__amountOfAvailableBricks == 0:
             return None
-        while True:
-            selectedBrick = np.random.choice(
-                self.__brickTypes, 1, replace=False, p=self.__probabilities)[0]
-            index = self.__brickTypes.index(selectedBrick)
-            if self.__availableBricks[index] != 0:
-                self.__availableBricks[index] -= 1
-                self.__amountOfAvailableBricks -= 1
-                copied = self.__brickTypes[index].copy()
-                copied.setId(LegoBrickCollection.__next_brick_id)
-                self.__generatedBricks.append(copied)
-                LegoBrickCollection.__next_brick_id += 1
-                return copied
+
+        bricks = []
+        probabilities = []
+
+        allBrickArea = np.sum([
+            self.__brickTypes[i].getArea()
+            for i in range(len(self.__brickTypes))
+            if self.__availableBricks[i] > 0
+        ])
+
+        for i in range(len(self.__brickTypes)):
+            if self.__availableBricks[i] > 0:
+                bricks.append(i)
+                probabilities.append(
+                    self.__brickTypes[i].getArea() / allBrickArea)
+
+        index = np.random.choice(bricks, 1, replace=False, p=probabilities)[0]
+        self.__availableBricks[index] -= 1
+        self.__amountOfAvailableBricks -= 1
+        copied = self.__brickTypes[index].copy()
+        copied.setId(LegoBrickCollection.__next_brick_id)
+        self.__generatedBricks.append(copied)
+        LegoBrickCollection.__next_brick_id += 1
+        return copied
 
     def getBrick(self, width: int, height: int) -> LegoBrick:
         """
@@ -255,7 +266,6 @@ class LegoBrickCollection(object):
             copy.__availableBricks = list(self.__availableBricks)
             copy.__brickTypes = list(self.__brickTypes)
             copy.__startBricks = list(self.__startBricks)
-            copy.__probabilities = list(self.__probabilities)
             copy.__generatedBricks = list(self.__generatedBricks)
             copy.__initialized = True
         return copy
