@@ -1,3 +1,5 @@
+# ga.py
+
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -46,10 +48,10 @@ class LegoBrickGA(object):
             raise ValueError("mutation threshold must be in range [0.0,1.0]!")
         self.__mutationThreshold = mutationThreshold
 
-    def evaluate(self,
-                 nTimes=1,
-                 generationResultHandler: GaResultHandler = None
-                 ) -> LegoBrickLayout:
+    def evaluateGeneration(self,
+                           nTimes=1,
+                           generationResultHandler: GaResultHandler = None
+                           ) -> LegoBrickLayout:
         population = self.__generatePopulations()
         self.__invokeHandler(generationResultHandler, population)
 

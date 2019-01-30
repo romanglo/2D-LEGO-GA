@@ -78,7 +78,7 @@ def main(argv):
                      mustValuedItem.getCoveredArea(),
                      (mustValuedItem.getHeight() * mustValuedItem.getWidth())))
 
-        ga.evaluate(
+        ga.evaluateGeneration(
             nTimes=generations, generationResultHandler=GaResultHandler())
     except:
         print("Some error occurred during the running! Process aborted..")

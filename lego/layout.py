@@ -20,16 +20,18 @@ class LegoBrickLayout(object):
 
     Methods
     -------
-    initialize( width: int, height: int, brickCollection: LegoBrickCollection):
+    initialize(width: int, height: int, brickCollection: LegoBrickCollection):
         LegoBrickLayout instance initialization.
         This function should be called once, more calls will be meaningless.
     isInitialized() -> bool:
         Gets the initialization state of the instance.
     copy() -> LegoBrickLayout:
         Gets a LegoBrickLayout instance with the same attributes.
+    getCollection() -> LegoBrickCollection:
+        Gets the layer brick collection.
     getAreaMatrix() -> np.ndarray:
         Gets a matrix which represents the cover of the layer.
-    getAreaBricks() -> List[Tuple[int, int, LegoBrick]]:
+    getAreaBricks() -> List[Tuple[int, int, LegoBrick, LegoBrickLayout.Orientation]]:
         Gets a list of all the bricks in the layer and their location on the layer.
     getCoveredArea() -> int:
         Gets the number of the covered cells in the matrix.
@@ -39,6 +41,8 @@ class LegoBrickLayout(object):
         Gets the width of the layer.
     validateLayer():
         Validate the layer after changes from outside.
+    def tryAddBrick(row: int, column: int, brick: LegoBrick, orientation: LegoBrickLayout.Orientation = None) -> bool:
+        Try to add the received brick to a specific place at the layer.
     isSameCoverage(otherLayout: LegoBrickLayout) -> bool:
         Check if the received layer has exactly the same coverage.
     """
@@ -124,9 +128,13 @@ class LegoBrickLayout(object):
         if firstVertical:
             if not self.__tryAddVertical(row, column, brick):
                 return self.__tryAddHorizontal(row, column, brick)
+            else:
+                return True
         else:
             if not self.__tryAddHorizontal(row, column, brick):
                 return self.__tryAddVertical(row, column, brick)
+            else:
+                return True
 
     def __tryAddHorizontal(self, row: int, column: int,
                            brick: LegoBrick) -> bool:
@@ -168,6 +176,48 @@ class LegoBrickLayout(object):
         self.__coveredArea += brick.getArea()
         return True
 
+    def tryAddBrick(self,
+                    row: int,
+                    column: int,
+                    brick: LegoBrick,
+                    orientation: Enum = None) -> bool:
+        """
+        Try to add the received brick to a specific place at the layer.
+
+         Parameters
+        ----------
+        row : int
+            The row index in the layer.
+        column : int
+            The column index in the layer.
+        brick : LegoBrick
+            The brick to add.
+        orientation : LegoBrickLayout.Orientation
+            default=None.
+            If none will try to add vertically and horizontally (random order), else will try to add as required.
+
+        Returns
+        -------
+        bool
+            True if the brick added successfully and false if did not.
+
+        Raises
+        ------
+        NotInitializedException
+            If this method called before initialize() method
+        """
+        if not self.__initialized:
+            raise NotInitializedException(
+                "The instance used before calling initialize method")
+
+        if orientation is None:
+            firstVertical = bool(random.getrandbits(1))
+            return self.__tryAdd(row, column, brick, firstVertical)
+        elif orientation is LegoBrickLayout.Orientation.HORIZONTAL:
+            return self.__tryAddHorizontal(row, column, brick)
+        else:
+            return self.__tryAddVertical(row, column, brick)
+
     def copy(self) -> object:
         """
         Gets a copy instance with the same attributes.
@@ -199,6 +249,25 @@ class LegoBrickLayout(object):
             True if the instance is initialized and False if doesn't.
         """
         return self.__initialized
+
+    def getCollection(self) -> LegoBrickCollection:
+        """
+        Gets the layer brick collection.
+
+        Returns
+        -------
+        LegoBrickCollection
+            layer brick collection.
+
+        Raises
+        ------
+        NotInitializedException
+            If this method called before initialize() method
+        """
+        if not self.__initialized:
+            raise NotInitializedException(
+                "The instance used before calling initialize method")
+        return self.__brickCollection
 
     def getAreaMatrix(self) -> np.ndarray:
         """

@@ -54,7 +54,7 @@ class LegoBrickCollection(object):
             The area to cover.
         bricks : List[LegoBrick]
             List of bricks to create the collection.
-        uniform : bool
+        uniform : bool [default = True]
             If true the selection of bricks will keep uniform probability.
 
         Raises
@@ -88,7 +88,7 @@ class LegoBrickCollection(object):
         amount = round(area / allBrickArea)
         if amount < 1:
             amount = 1
-            
+
         self.__availableBricks = np.full(len(bricks), amount, dtype=np.int32)
         self.__startBricks = list(self.__availableBricks)
         self.__amountOfAvailableBricks = sum(self.__availableBricks)

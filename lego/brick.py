@@ -30,7 +30,7 @@ class LegoBrick(object):
 
     def __init__(self, width: int, height: int, id: int = NONE_ID):
         """
-        LegoBrick constuctor.
+        LegoBrick constructor.
 
         Parameters
         ----------

@@ -14,7 +14,7 @@ class LegoBrick_Test(unittest.TestCase):
             throws = True
         self.assertTrue(
             throws,
-            "LegoBrick constructor didn't throw ValueError on illegal paramter"
+            "LegoBrick constructor didn't throw ValueError on illegal parameter"
         )
 
         throws = False
@@ -24,7 +24,7 @@ class LegoBrick_Test(unittest.TestCase):
             throws = True
         self.assertTrue(
             throws,
-            "LegoBrick constructor didn't throw ValueError on illegal paramter"
+            "LegoBrick constructor didn't throw ValueError on illegal parameter"
         )
 
     def test_initialization(self):
