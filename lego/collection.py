@@ -73,6 +73,8 @@ class LegoBrickCollection(object):
         if bricks is None:
             raise TypeError("bricks list is none!")
 
+        self.__uniform = uniform
+
         bricks.sort(key=lambda x: x.getArea())
         self.__brickTypes = list(bricks)
 
@@ -82,23 +84,12 @@ class LegoBrickCollection(object):
             return
 
         allBrickArea = np.sum([brick.getArea() for brick in bricks])
-        probabilities = []
-        for brick in bricks:
-            probabilities.append(brick.getArea() / allBrickArea)
 
-        if (uniform):
-            amount = round(area / allBrickArea)
-            self.__availableBricks = np.full(len(bricks), amount)
-        else:
-            self.__availableBricks = np.zeros(len(bricks), dtype=np.int32)
-            currentArea = 0
-            while (currentArea < area):
-                selectedBrick = np.random.choice(
-                    bricks, 1, replace=False, p=probabilities)[0]
-                selectedBrickIndex = bricks.index(selectedBrick)
-                self.__availableBricks[selectedBrickIndex] += 1
-                currentArea += selectedBrick.getArea()
-
+        amount = round(area / allBrickArea)
+        if amount < 1:
+            amount = 1
+            
+        self.__availableBricks = np.full(len(bricks), amount, dtype=np.int32)
         self.__startBricks = list(self.__availableBricks)
         self.__amountOfAvailableBricks = sum(self.__availableBricks)
         self.__generatedBricks = []
@@ -125,22 +116,32 @@ class LegoBrickCollection(object):
         if self.__amountOfAvailableBricks == 0:
             return None
 
-        bricks = []
-        probabilities = []
+        index = -1
 
-        allBrickArea = np.sum([
-            self.__brickTypes[i].getArea()
-            for i in range(len(self.__brickTypes))
-            if self.__availableBricks[i] > 0
-        ])
+        if self.__uniform:
+            bricks = [
+                i for i in range(len(self.__brickTypes))
+                if self.__availableBricks[i] > 0
+            ]
+            index = np.random.choice(bricks, 1, replace=False)[0]
+        else:
+            bricks = []
+            probabilities = []
 
-        for i in range(len(self.__brickTypes)):
-            if self.__availableBricks[i] > 0:
-                bricks.append(i)
-                probabilities.append(
-                    self.__brickTypes[i].getArea() / allBrickArea)
+            allBrickArea = np.sum([
+                self.__brickTypes[i].getArea()
+                for i in range(len(self.__brickTypes))
+                if self.__availableBricks[i] > 0
+            ])
 
-        index = np.random.choice(bricks, 1, replace=False, p=probabilities)[0]
+            for i in range(len(self.__brickTypes)):
+                if self.__availableBricks[i] > 0:
+                    bricks.append(i)
+                    probabilities.append(
+                        self.__brickTypes[i].getArea() / allBrickArea)
+            index = np.random.choice(
+                bricks, 1, replace=False, p=probabilities)[0]
+
         self.__availableBricks[index] -= 1
         self.__amountOfAvailableBricks -= 1
         copied = self.__brickTypes[index].copy()
@@ -267,6 +268,7 @@ class LegoBrickCollection(object):
             copy.__brickTypes = list(self.__brickTypes)
             copy.__startBricks = list(self.__startBricks)
             copy.__generatedBricks = list(self.__generatedBricks)
+            copy.__uniform = self.__uniform
             copy.__initialized = True
         return copy
 
@@ -291,6 +293,6 @@ class LegoBrickCollection(object):
         if not self.__initialized:
             return "LegoBrickCollection[Not initialized]"
 
-        return "LegoBrickCollection[BricksTypes=%s, AmountOfAvailableBricks=%d, AvailableBricks=%s]" % (
-            str(self.__brickTypes), str(self.__amountOfAvailableBricks),
-            str(self.__availableBricks))
+        return "LegoBrickCollection[BricksTypes=%d, AmountOfAvailableBricks=%d, Uniform=%s]" % (
+            str(len(self.__brickTypes)), str(self.__amountOfAvailableBricks),
+            str(self.__uniform))

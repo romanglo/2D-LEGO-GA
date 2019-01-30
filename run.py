@@ -9,25 +9,22 @@ from lego.collection import LegoBrickCollection
 from lego.ga import LegoBrickGA
 from lego.layout import LegoBrickLayout
 
-DEFALT_WIDTH = 31
-DEFALT_HEIGHT = 47
-DEFALT_NUMBER_OF_BRICKS_TYPES = 20
+DEFAULT_WIDTH = 10
+DEFAULT_HEIGHT = 10
+DEFAULT_NUMBER_OF_BRICKS_TYPES = 5
+DEFAULT_MAX_BRICK_RIB_SIZE = 7
 DEFAULT_GENERATIONS = 10
 DEFAULT_POPULATION_SIZE = 10
 DEFAULT_MUTATION_THRESHOLD = 0.1
 
 
 def readArguments(argv):
-    return DEFALT_WIDTH, DEFALT_HEIGHT, DEFALT_NUMBER_OF_BRICKS_TYPES, DEFAULT_POPULATION_SIZE, DEFAULT_GENERATIONS, DEFAULT_MUTATION_THRESHOLD
+    return DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_NUMBER_OF_BRICKS_TYPES, DEFAULT_MAX_BRICK_RIB_SIZE, DEFAULT_POPULATION_SIZE, DEFAULT_GENERATIONS, DEFAULT_MUTATION_THRESHOLD
 
 
-def generateBricks(width: int, height: int,
-                   numberOfBricksTypes: int) -> List[LegoBrick]:
-    maxBrickSize = round(math.sqrt(min(width, height)))
-    if (maxBrickSize * maxBrickSize) / 2 < numberOfBricksTypes:
-        # the maximum permutation
-        numberOfBricksTypes = int((maxBrickSize * maxBrickSize) / 2)
-    maxBrickSize += 1
+def generateBricks(width: int, height: int, numberOfBricksTypes: int,
+                   maxBrickRibSize: int) -> List[LegoBrick]:
+    maxBrickSize = maxBrickRibSize + 1
     bricks = []
     while len(bricks) < numberOfBricksTypes:
         width = np.random.randint(1, maxBrickSize)
@@ -46,7 +43,7 @@ def generateBricks(width: int, height: int,
 def generateCollection(width: int, height: int,
                        bricks: List[LegoBrick]) -> LegoBrickCollection:
     brickCollection = LegoBrickCollection()
-    brickCollection.initialize(71 * 163, bricks, uniform=True)
+    brickCollection.initialize(width * height, bricks, uniform=True)
     assert brickCollection.isInitialized()
     return brickCollection
 
@@ -63,9 +60,10 @@ def generateGa(width: int,
 
 def main(argv):
     try:
-        width, height, numberOfBricksTypes, populationSize, generations, mutationThreshold = readArguments(
+        width, height, numberOfBricksTypes, maxBrickRibSize, populationSize, generations, mutationThreshold = readArguments(
             argv)
-        bricks = generateBricks(width, height, numberOfBricksTypes)
+        bricks = generateBricks(width, height, numberOfBricksTypes,
+                                maxBrickRibSize)
         collection = generateCollection(width, height, bricks)
         ga = generateGa(width, height, collection, populationSize,
                         mutationThreshold)
@@ -79,10 +77,6 @@ def main(argv):
                     (generation, populationValue,
                      mustValuedItem.getCoveredArea(),
                      (mustValuedItem.getHeight() * mustValuedItem.getWidth())))
-                # print res matrix:
-                # resMat = mustValuedItem.getAreaMatrix()
-                # for i in range(mustValuedItem.getWidth()):
-                #     print("".join(("%5d" % x) for x in resMat[i]))
 
         ga.evaluate(
             nTimes=generations, generationResultHandler=GaResultHandler())
