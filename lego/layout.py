@@ -210,10 +210,13 @@ class LegoBrickLayout(object):
             raise NotInitializedException(
                 "The instance used before calling initialize method")
 
+        if row < 0 or column < 0 or row >= self.__width or column >= self.__height:
+            return False
+
         if orientation is None:
             firstVertical = bool(random.getrandbits(1))
             return self.__tryAdd(row, column, brick, firstVertical)
-        elif orientation is LegoBrickLayout.Orientation.HORIZONTAL:
+        elif orientation == LegoBrickLayout.Orientation.HORIZONTAL:
             return self.__tryAddHorizontal(row, column, brick)
         else:
             return self.__tryAddVertical(row, column, brick)
@@ -380,28 +383,22 @@ class LegoBrickLayout(object):
         try:
             self.__layout.sort(key=lambda brickPos: (brickPos[0], brickPos[1]))
 
-            index = 0
+            self.__coveredArea = np.sum(
+                [brick[2].getArea() for brick in self.__layout])
+
             for x in range(self.__width):
                 for y in range(self.__height):
-                    if index < len(self.__layout) and self.__layout[index][
-                            0] == x and self.__layout[index][1] == y:
-                        if self.__layout[index][
-                                3] == LegoBrickLayout.Orientation.VERTICAL:
-                            for i in range(
-                                    x, x + self.__layout[index][2].getWidth()):
-                                self.__area[index][
-                                    y:y + self.__layout[index][2].getHeight(
-                                    )] = self.__layout[index][2].getId()
-                        else:
-                            for i in range(
-                                    x,
-                                    x + self.__layout[index][2].getHeight()):
-                                self.__area[index][
-                                    y:y + self.__layout[index][2].getWidth(
-                                    )] = self.__layout[index][2].getId()
-                        index += 1
-                    else:
-                        self.__area[x][y] = 0
+                    self.__area[x][y] = 0
+
+            for brick in self.__layout:
+                if (brick[3] == LegoBrickLayout.Orientation.HORIZONTAL):
+                    for i in range(brick[0], brick[0] + brick[2].getHeight()):
+                        self.__area[i][brick[1]:brick[1] +
+                                       brick[2].getWidth()] = brick[2].getId()
+                else:
+                    for i in range(brick[0], brick[0] + brick[2].getWidth()):
+                        self.__area[i][brick[1]:brick[1] + brick[2].
+                                       getHeight()] = brick[2].getId()
         except:
             return False
         return True
@@ -433,19 +430,20 @@ class LegoBrickLayout(object):
             return False
 
         if self.__width != otherLayout.getWidth(
-        ) or self.__height != otherLayout.getHeight():
+        ) or self.__height != otherLayout.getHeight(
+        ) or self.__coveredArea != otherLayout.getCoveredArea():
             return False
 
-        otherLayout = otherLayout.getAreaBricks()
-        if len(self.__layout) != len(otherLayout):
+        otherLayoutBricks = otherLayout.getAreaBricks()
+        if len(self.__layout) != len(otherLayoutBricks):
             return False
 
         for i in range(len(self.__layout)):
-            if self.__layout[i][0] != otherLayout[i][0] or self.__layout[
-                    i][1] != otherLayout[i][1] or self.__layout[i][2].getWidth(
-                    ) != otherLayout[i][2].getWidth() or self.__layout[i][
-                        2].getHeight() != otherLayout[i][2].getHeight(
-                        ) or self.__layout[i][3] != otherLayout[i][3]:
+            if self.__layout[i][0] != otherLayoutBricks[i][0] or self.__layout[
+                    i][1] != otherLayoutBricks[i][1] or self.__layout[i][2].getWidth(
+                    ) != otherLayoutBricks[i][2].getWidth() or self.__layout[i][
+                        2].getHeight() != otherLayoutBricks[i][2].getHeight(
+                        ) or self.__layout[i][3] != otherLayoutBricks[i][3]:
                 return False
         return True
 

@@ -5,6 +5,7 @@ from typing import List
 
 import numpy as np
 
+import lego.ga_utils as GaUtils
 from lego.brick import LegoBrick
 from lego.collection import LegoBrickCollection
 from lego.exceptions import NotInitializedException
@@ -48,15 +49,15 @@ class LegoBrickGA(object):
             raise ValueError("mutation threshold must be in range [0.0,1.0]!")
         self.__mutationThreshold = mutationThreshold
 
-    def evaluateGeneration(self,
-                           nTimes=1,
-                           generationResultHandler: GaResultHandler = None
-                           ) -> LegoBrickLayout:
+    def evolveGeneration(self,
+                         nTimes=1,
+                         generationResultHandler: GaResultHandler = None
+                         ) -> LegoBrickLayout:
         population = self.__generatePopulations()
         self.__invokeHandler(generationResultHandler, population)
 
         for i in range(nTimes):
-            population = self.__evaluate(population)
+            population = self.__evolve(population)
             self.__invokeHandler(generationResultHandler, population)
 
         return max(population, key=lambda item: item.getCoveredArea())
@@ -83,8 +84,8 @@ class LegoBrickGA(object):
             population.append(layout)
         return population
 
-    def __evaluate(self,
-                   population: List[LegoBrickLayout]) -> List[LegoBrickLayout]:
+    def __evolve(self,
+                 population: List[LegoBrickLayout]) -> List[LegoBrickLayout]:
         populationValue = np.sum(
             [item.getCoveredArea() for item in population])
         probabilities = []
@@ -95,22 +96,13 @@ class LegoBrickGA(object):
         while (len(newPopulation) < len(population)):
             select = np.random.choice(
                 population, 2, replace=False, p=probabilities)
-            children = self.__crossover(select[0], select[1])
-            mutatedChildren = self.__mutate(children[0], children[1])
 
-            value = [
-                select[0], select[1], mutatedChildren[0], mutatedChildren[1]
-            ].sort(
+            children = GaUtils.evolve(select[0], select[1],
+                                      self.__mutationThreshold)
+
+            value = [select[0], select[1], children[0], children[1]].sort(
                 key=lambda item: item.getCoveredArea(), reverse=True)
             # TODO ROMAN: continue ga algorithm
             break
 
         return population
-
-    def __crossover(self, firstParent: LegoBrickLayout,
-                    secondParent: LegoBrickLayout) -> List[LegoBrickLayout]:
-        return [firstParent, secondParent]
-
-    def __mutate(self, firstChild: LegoBrickLayout,
-                 secondChild: LegoBrickLayout) -> List[LegoBrickLayout]:
-        return [firstChild, secondChild]

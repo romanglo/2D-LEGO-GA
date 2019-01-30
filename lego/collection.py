@@ -91,7 +91,7 @@ class LegoBrickCollection(object):
 
         self.__availableBricks = np.full(len(bricks), amount, dtype=np.int32)
         self.__startBricks = list(self.__availableBricks)
-        self.__amountOfAvailableBricks = sum(self.__availableBricks)
+        self.__amountOfAvailableBricks = int(sum(self.__availableBricks))
         self.__generatedBricks = []
         self.__initialized = True
 
