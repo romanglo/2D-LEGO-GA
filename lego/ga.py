@@ -6,7 +6,6 @@ from typing import List
 
 import numpy as np
 
-import _thread
 import lego.ga_utils as GaUtils
 import lego.utils as Utils
 from lego.brick import LegoBrick
@@ -55,17 +54,14 @@ class LegoBrickGA(object):
     def evolveGeneration(self,
                          nTimes=1,
                          generationResultHandler: GaResultHandler = None
-                         ) -> List[LegoBrickLayout]:
+                         ) -> LegoBrickLayout:
         population = self.__generatePopulations()
 
         print("\nStarting genetic algorithm..")
-        self.__invokeHandler(generationResultHandler, 0, population, True)
+        self.__invokeHandler(generationResultHandler, 0, population)
 
         Utils.printProgressBar(
-            0,
-            nTimes,
-            prefix="Progress",
-            suffix="of generations have evolved")
+            0, nTimes, prefix="Progress", suffix="of generations have evolved")
 
         for i in range(nTimes):
             population = self.__evolve(population)
@@ -75,28 +71,16 @@ class LegoBrickGA(object):
                 prefix="Progress",
                 suffix="of generations have evolved",
                 fill='#')
-            self.__invokeHandler(generationResultHandler, i + 1, population,
-                                 True)
+            self.__invokeHandler(generationResultHandler, i + 1, population)
 
-        time.sleep(1)  # To ensure that all GA threads finished their work.
-
+        result = max(population, key=lambda item: item.getCoveredArea())
         print("Genetic algorithm finished!")
+        return result
 
-        return population
-
-    def __invokeHandler(self,
-                        generationResultHandler: GaResultHandler,
-                        generation: int,
-                        population: List[LegoBrickLayout],
-                        async: bool = False):
-        if(population is None):
-            print("Error!")
+    def __invokeHandler(self, generationResultHandler: GaResultHandler,
+                        generation: int, population: List[LegoBrickLayout]):
         if generationResultHandler is not None:
-            if async:
-                _thread.start_new_thread(generationResultHandler.onGaResult,
-                                         (generation, population))
-            else:
-                generationResultHandler.onGaResult(generation, population)
+            generationResultHandler.onGaResult(generation, population)
 
     def __generatePopulations(self) -> List[LegoBrickLayout]:
         print("\nGenerating population..")
@@ -145,12 +129,26 @@ class LegoBrickGA(object):
                                       self.__mutationThreshold)
             if children is None:
                 continue
+            value = [select[0], select[1], children[0], children[1]]
+            value.sort(key=lambda item: item.getCoveredArea(), reverse=True)
 
-            newPopulation.append(children[0])
-            newPopulation.append(children[1])
+            potentialToAdd = []
 
-            # value = [select[0], select[1], children[0], children[1]].sort(
-            # key=lambda item: item.getCoveredArea(), reverse=True)
-            # TODO ROMAN: continue ga algorithm
+            for generateLayout in value:
+                toAdd = True
+                for populationLayout in newPopulation:
+                    if populationLayout.hasSameCoverage(generateLayout):
+                        toAdd = False
+                        break
+                if toAdd:
+                    potentialToAdd.append(generateLayout)
+                if len(potentialToAdd) == 2:
+                    break
+
+            if len(potentialToAdd) < 2:
+                continue
+
+            newPopulation.append(potentialToAdd[0])
+            newPopulation.append(potentialToAdd[1])
 
         return newPopulation

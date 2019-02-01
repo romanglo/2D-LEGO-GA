@@ -70,6 +70,9 @@ def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout):
     __validateCrossData(firstChildCross, firstChildConstraints,
                         secondChildCross, secondChildConstraints)
 
+    if len(firstChildCross) == 0 and len(secondChildCross) == 0:
+        return (firstChild, secondChild)
+
     firstChildBricks = firstChild.getAreaBricks()
     for brick in firstChildCross:
         firstChildBricks.remove(brick)
@@ -78,7 +81,6 @@ def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout):
         secondChildBricks.remove(brick)
 
     # Safe add but not efficient at all:
-
     firstChild.validateLayer()
     secondChild.validateLayer()
 
@@ -114,7 +116,7 @@ def __validateCrossData(firstCross, firstConstraints, secondCross,
         for crossBrick in list(firstCross):
             crossBrickRec = __getBrickRectangle(crossBrick)
             for constarintBrick in secondConstraints:
-                constarintBrickRec = __getBrickRectangle(crossBrick)
+                constarintBrickRec = __getBrickRectangle(constarintBrick)
                 if Utils.rectangleOverlappedArea(crossBrickRec,
                                                  constarintBrickRec) != 0:
                     dirty = True
@@ -124,7 +126,7 @@ def __validateCrossData(firstCross, firstConstraints, secondCross,
         for crossBrick in list(secondCross):
             crossBrickRec = __getBrickRectangle(crossBrick)
             for constarintBrick in firstConstraints:
-                constarintBrickRec = __getBrickRectangle(crossBrick)
+                constarintBrickRec = __getBrickRectangle(constarintBrick)
                 if Utils.rectangleOverlappedArea(crossBrickRec,
                                                  constarintBrickRec) != 0:
                     dirty = True
@@ -209,15 +211,14 @@ def tryMutate(mutationThreshold: float, layer: LegoBrickLayout) -> None:
         return
     mutationType = np.random.choice(MutationsList, size=1, replace=False)[0]
 
-    res = False
     if mutationType == Mutations.CHANGE:
-        res = changeMutation(layer)
+        changeMutation(layer)
     elif mutationType == Mutations.ADD:
-        res = addMutation(layer)
+        addMutation(layer)
     elif mutationType == Mutations.REMOVE:
-        res = removeMutation(layer)
+        removeMutation(layer)
     elif mutationType == Mutations.MOVE:
-        res = moveMutation(layer)
+        moveMutation(layer)
 
 
 def changeMutation(layer: LegoBrickLayout) -> bool:

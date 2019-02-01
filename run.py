@@ -1,30 +1,51 @@
 import math
 import sys
-import threading
 import traceback
 from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib import colors
 
 from lego.brick import LegoBrick
 from lego.collection import LegoBrickCollection
 from lego.ga import LegoBrickGA
 from lego.layout import LegoBrickLayout
 
-DEFAULT_WIDTH = 53
-DEFAULT_HEIGHT = 71
-DEFAULT_NUMBER_OF_BRICKS_TYPES = 15
-DEFAULT_MAX_BRICK_RIB_SIZE = 15
-DEFAULT_GENERATIONS = 5
-DEFAULT_POPULATION_SIZE = 5
+DEFAULT_WIDTH = 50
+DEFAULT_HEIGHT = 50
+DEFAULT_NUMBER_OF_BRICKS_TYPES = 10
+DEFAULT_MAX_BRICK_RIB_SIZE = 7
+DEFAULT_GENERATIONS = 10
+DEFAULT_POPULATION_SIZE = 20
 DEFAULT_MUTATION_THRESHOLD = 0.0
 DEFAULT_VERBOSE = True
 
 
 def readArguments(argv):
-    return DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_NUMBER_OF_BRICKS_TYPES, DEFAULT_MAX_BRICK_RIB_SIZE, DEFAULT_POPULATION_SIZE, DEFAULT_GENERATIONS, DEFAULT_MUTATION_THRESHOLD, DEFAULT_VERBOSE
+    # TODO ROMAN: read arguments from command
+    width = DEFAULT_WIDTH
+    height = DEFAULT_HEIGHT
+    numberOfBricksTypes = DEFAULT_NUMBER_OF_BRICKS_TYPES
+    maxBrickRibSize = DEFAULT_MAX_BRICK_RIB_SIZE
+    populationSize = DEFAULT_POPULATION_SIZE
+    generations = DEFAULT_GENERATIONS
+    mutationThreshold = DEFAULT_MUTATION_THRESHOLD
+    verbose = DEFAULT_VERBOSE
+
+    print("\Arguments:")
+    print("-----------")
+    print("width=", width)
+    print("height=", height)
+    print("number of bricks types=", numberOfBricksTypes)
+    print("max brick rib size=", maxBrickRibSize)
+    print("population size=", populationSize)
+    print("generations=", generations)
+    print("mutation threshold=", mutationThreshold)
+    print("verbose=", verbose)
+
+    return width, height, numberOfBricksTypes, maxBrickRibSize, populationSize, generations, mutationThreshold, verbose
 
 
 def generateBricks(width: int, height: int, numberOfBricksTypes: int,
@@ -42,6 +63,9 @@ def generateBricks(width: int, height: int, numberOfBricksTypes: int,
         if brick not in bricks:
             bricks.append(brick)
 
+    print("\nSelected Bricks:")
+    for i in range(len(bricks)):
+        print("%d - %s" % (i + 1, str(bricks[i])))
     return bricks
 
 
@@ -73,7 +97,6 @@ class GaResultHandler(LegoBrickGA.GaResultHandler):
         self.min = []
         self.area = 0
         self.generations = -1
-        self.__threadLock = threading.Lock()
 
     def onGaResult(self, generation: int, population: List[LegoBrickLayout]):
 
@@ -82,8 +105,6 @@ class GaResultHandler(LegoBrickGA.GaResultHandler):
 
         covered = np.sort(covered)
 
-        # lock data append to ensure the continuity of the information
-        self.__threadLock.acquire()
         self.generations = max(self.generations, generation)
         self.sum.append(np.sum(covered))
         self.average.append(np.average(covered))
@@ -91,10 +112,8 @@ class GaResultHandler(LegoBrickGA.GaResultHandler):
         self.max.append(covered[len(covered) - 1])
         self.min.append(covered[0])
 
-        self.__threadLock.release()
 
-
-def drawPlot(gaResultHandler: GaResultHandler):
+def drawStatisticsPlot(gaResultHandler: GaResultHandler):
     df = pd.DataFrame({
         "generation": range(gaResultHandler.generations + 1),
         "max": gaResultHandler.max,
@@ -108,8 +127,6 @@ def drawPlot(gaResultHandler: GaResultHandler):
         "Max Coverage", "Min Coverage", "Average Coverage", "Median Coverage",
         "Total Coverage"
     ]
-
-    plt.clf()
 
     # Initialize the figure
     plt.style.use("seaborn-darkgrid")
@@ -147,7 +164,7 @@ def drawPlot(gaResultHandler: GaResultHandler):
         color="black",
     )
 
-    plt.text(0.5, 0.02, "Generations", ha="center", va="center")
+    plt.text(0.4, 0.05, "Generations", ha="center")
 
     try:
         # will work only on windows
@@ -156,7 +173,38 @@ def drawPlot(gaResultHandler: GaResultHandler):
     except:
         pass  # ignored
 
-    plt.show()
+
+def drawResultPlot(result: LegoBrickLayout):
+
+    area = result.getAreaMatrix()
+    maxId = area.max()
+    # create discrete colormap
+    cmap = colors.ListedColormap(['red', 'blue'])
+    bounds = [-1, 0.1, maxId + 1]
+    norm = colors.BoundaryNorm(bounds, cmap.N)
+
+    fig, ax = plt.subplots()
+
+    ax.imshow(result.getAreaMatrix(), cmap=cmap, norm=norm)
+
+    ax.set_xticks(np.arange(start=0, stop=result.getWidth(), step=1))
+    ax.set_yticks(np.arange(start=0, stop=result.getHeight(), step=1))
+    # draw gridlines
+    ax.grid(
+        which='major', axis='both', linestyle='-', color='k', linewidth=0.5)
+
+    plt.suptitle(
+        "2D-LEGO Coverage Problem Genetic Algorithm Solution\n\nCoverage %d/%d"
+        % (result.getCoveredArea(), (result.getWidth() * result.getHeight())),
+        fontsize=16,
+        color="black",
+    )
+    try:
+        # will work only on windows
+        figManager = plt.get_current_fig_manager()
+        figManager.window.showMaximized()
+    except:
+        pass  # ignored
 
 
 def main(argv):
@@ -169,10 +217,17 @@ def main(argv):
         ga = generateGa(width, height, collection, populationSize,
                         mutationThreshold)
         resultHandler = GaResultHandler()
-        ga.evolveGeneration(
+
+        result = ga.evolveGeneration(
             nTimes=generations, generationResultHandler=resultHandler)
 
-        drawPlot(resultHandler)
+        print("Best layer cover %d from %d" %
+              (result.getCoveredArea(),
+               (result.getWidth() * result.getHeight())))
+
+        drawStatisticsPlot(resultHandler)
+        drawResultPlot(result)
+        plt.show()
 
     except Exception as e:
         print("Some error occurred during the running! Process aborted..")
