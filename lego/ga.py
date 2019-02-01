@@ -1,11 +1,14 @@
 # ga.py
 
+import time
 from abc import ABC, abstractmethod
 from typing import List
 
 import numpy as np
 
+import _thread
 import lego.ga_utils as GaUtils
+import lego.utils as Utils
 from lego.brick import LegoBrick
 from lego.collection import LegoBrickCollection
 from lego.exceptions import NotInitializedException
@@ -18,8 +21,8 @@ class LegoBrickGA(object):
             super(LegoBrickGA.GaResultHandler, self).__init__()
 
         @abstractmethod
-        def onGaResult(self, generation: int, populationValue: int,
-                       mustValuedItem: LegoBrickLayout):
+        def onGaResult(self, generation: int,
+                       population: List[LegoBrickLayout]):
             pass
 
     def __init__(self,
@@ -52,27 +55,58 @@ class LegoBrickGA(object):
     def evolveGeneration(self,
                          nTimes=1,
                          generationResultHandler: GaResultHandler = None
-                         ) -> LegoBrickLayout:
+                         ) -> List[LegoBrickLayout]:
         population = self.__generatePopulations()
-        self.__invokeHandler(generationResultHandler, population)
+
+        print("\nStarting genetic algorithm..")
+        self.__invokeHandler(generationResultHandler, 0, population, True)
+
+        Utils.printProgressBar(
+            0,
+            nTimes,
+            prefix="Progress",
+            suffix="of generations have evolved")
 
         for i in range(nTimes):
             population = self.__evolve(population)
-            self.__invokeHandler(generationResultHandler, population)
+            Utils.printProgressBar(
+                i + 1,
+                nTimes,
+                prefix="Progress",
+                suffix="of generations have evolved",
+                fill='#')
+            self.__invokeHandler(generationResultHandler, i + 1, population,
+                                 True)
 
-        return max(population, key=lambda item: item.getCoveredArea())
+        time.sleep(1)  # To ensure that all GA threads finished their work.
+
+        print("Genetic algorithm finished!")
+
+        return population
 
     def __invokeHandler(self,
                         generationResultHandler: GaResultHandler,
+                        generation: int,
                         population: List[LegoBrickLayout],
                         async: bool = False):
+        if(population is None):
+            print("Error!")
         if generationResultHandler is not None:
-            bestItem = max(population, key=lambda item: item.getCoveredArea())
-            populationValue = np.sum(
-                [item.getCoveredArea() for item in population])
-            generationResultHandler.onGaResult(0, populationValue, bestItem)
+            if async:
+                _thread.start_new_thread(generationResultHandler.onGaResult,
+                                         (generation, population))
+            else:
+                generationResultHandler.onGaResult(generation, population)
 
     def __generatePopulations(self) -> List[LegoBrickLayout]:
+        print("\nGenerating population..")
+
+        Utils.printProgressBar(
+            0,
+            self.__populationSize,
+            prefix="Progress",
+            suffix="of population have created")
+
         population = []
         while len(population) < self.__populationSize:
             bricks = self.__brickCollection.copy()
@@ -81,7 +115,17 @@ class LegoBrickGA(object):
             if not layout.isInitialized():
                 raise NotInitializedException(
                     "Failed on try to initialize LegoBrickLayout")
+            for layoutInPopulation in population:
+                if (layoutInPopulation.hasSameCoverage(layout)):
+                    break
             population.append(layout)
+            Utils.printProgressBar(
+                len(population),
+                self.__populationSize,
+                prefix="Progress",
+                suffix="of population have created",
+                fill='#')
+        print("A population of", len(population), "was created.")
         return population
 
     def __evolve(self,
@@ -99,10 +143,14 @@ class LegoBrickGA(object):
 
             children = GaUtils.evolve(select[0], select[1],
                                       self.__mutationThreshold)
+            if children is None:
+                continue
 
-            value = [select[0], select[1], children[0], children[1]].sort(
-                key=lambda item: item.getCoveredArea(), reverse=True)
+            newPopulation.append(children[0])
+            newPopulation.append(children[1])
+
+            # value = [select[0], select[1], children[0], children[1]].sort(
+            # key=lambda item: item.getCoveredArea(), reverse=True)
             # TODO ROMAN: continue ga algorithm
-            break
 
-        return population
+        return newPopulation
