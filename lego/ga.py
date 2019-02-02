@@ -61,7 +61,11 @@ class LegoBrickGA(object):
         self.__invokeHandler(generationResultHandler, 0, population)
 
         Utils.printProgressBar(
-            0, nTimes, prefix="Progress", suffix="of generations have evolved")
+            0,
+            nTimes,
+            prefix="Progress",
+            suffix="of generations have evolved",
+            fill='#')
 
         for i in range(nTimes):
             population = self.__evolve(population)
@@ -89,7 +93,8 @@ class LegoBrickGA(object):
             0,
             self.__populationSize,
             prefix="Progress",
-            suffix="of population have created")
+            suffix="of population have created",
+            fill='#')
 
         population = []
         while len(population) < self.__populationSize:

@@ -1,12 +1,15 @@
+import getopt
 import math
 import sys
 import traceback
 from typing import List
 
+import matplotlib.cm as cm
+import matplotlib.colors as colors
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import numpy as np
 import pandas as pd
-from matplotlib import colors
 
 from lego.brick import LegoBrick
 from lego.collection import LegoBrickCollection
@@ -15,16 +18,37 @@ from lego.layout import LegoBrickLayout
 
 DEFAULT_WIDTH = 25
 DEFAULT_HEIGHT = 25
-DEFAULT_NUMBER_OF_BRICKS_TYPES = 8
+DEFAULT_NUMBER_OF_BRICKS_TYPES = -1
 DEFAULT_MAX_BRICK_RIB_SIZE = 4
-DEFAULT_GENERATIONS = 50
-DEFAULT_POPULATION_SIZE = 100
+DEFAULT_GENERATIONS = 100
+DEFAULT_POPULATION_SIZE = 50
 DEFAULT_MUTATION_THRESHOLD = 0.1
 DEFAULT_VERBOSE = True
+DEFAULT_COLOR_TYPE = 2
+
+HELP = """\nGenetic Algorithm Solution to 2D-LEGO Coverage Problem:
+              --help        : help string
+              --width       : The width of the surface of the problem [default=%d]
+              --height      : The height of the surface of the problem [default=%d]
+              --types_num   : The amount of different bricks that will be used to solve the problem,
+                              -1 for default bricks set [default=%d]
+              --max_brick   : The maximum size of a brick rib [default='%d']
+                              it's irrelevant if the default set is selected in '-types'
+              --population  : The size of the population [default='%d']
+              --generations : The amount of the generations [default='%d']
+              --mutation    : The mutation chance, in the range [0.0, 1.0].
+                              0 will prevent the mutation [default='%d']
+              --verbose     : 0 for minimum prints and 1 for more prints [default='%d']
+              --color       : 1 for discrete coloring style, 2 for gradient coloring style [default='%d']
+           """ % (
+    DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_NUMBER_OF_BRICKS_TYPES,
+    DEFAULT_MAX_BRICK_RIB_SIZE, DEFAULT_GENERATIONS, DEFAULT_POPULATION_SIZE,
+    DEFAULT_MUTATION_THRESHOLD, DEFAULT_VERBOSE, DEFAULT_COLOR_TYPE)
+
+HELP_ON_ERROR = "\nIncorrect command!\n" + HELP
 
 
 def readArguments(argv):
-    # TODO ROMAN: read arguments from command
     width = DEFAULT_WIDTH
     height = DEFAULT_HEIGHT
     numberOfBricksTypes = DEFAULT_NUMBER_OF_BRICKS_TYPES
@@ -33,35 +57,82 @@ def readArguments(argv):
     generations = DEFAULT_GENERATIONS
     mutationThreshold = DEFAULT_MUTATION_THRESHOLD
     verbose = DEFAULT_VERBOSE
+    colorType = DEFAULT_VERBOSE
+    try:
+        opts, args = getopt.getopt(argv, None, [
+            "help", "width=", "height=", "types_num=", "max_brick=",
+            "population=", "generations=", "mutation=", "verbose=", "color="
+        ])
+        print(opts)
+        for opt, arg in opts:
+            if opt == "--help":
+                print(HELP)
+                sys.exit()
+            elif opt == "--width":
+                width = int(arg)
+            elif opt == "--height":
+                height = int(arg)
+            elif opt == "--types_num":
+                numberOfBricksTypes = int(arg)
+            elif opt == "--max_brick":
+                numberOfBricksTypes = int(arg)
+            elif opt == "--population":
+                populationSize = int(arg)
+            elif opt == "--generations":
+                generations = int(arg)
+            elif opt == "--mutation":
+                mutationThreshold = float(arg)
+            elif opt == "--verbose":
+                verbose = int(arg)
+            elif opt == "--color":
+                colorType = int(arg)
+    except getopt.GetoptError:
+        print(HELP_ON_ERROR)
+        sys.exit()
 
     print("\Arguments:")
     print("-----------")
-    print("width=", width)
-    print("height=", height)
-    print("number of bricks types=", numberOfBricksTypes)
-    print("max brick rib size=", maxBrickRibSize)
-    print("population size=", populationSize)
-    print("generations=", generations)
-    print("mutation threshold=", mutationThreshold)
-    print("verbose=", verbose)
+    print("width =", width)
+    print("height =", height)
+    print("number of bricks types =", numberOfBricksTypes)
+    print("max brick rib size =", maxBrickRibSize)
+    print("population size =", populationSize)
+    print("generations =", generations)
+    print("mutation threshold =", mutationThreshold)
+    print("verbose =", verbose)
+    print("Color type =", colorType)
 
-    return width, height, numberOfBricksTypes, maxBrickRibSize, populationSize, generations, mutationThreshold, verbose
+    return width, height, numberOfBricksTypes, maxBrickRibSize, populationSize, generations, mutationThreshold, verbose, colorType
 
 
 def generateBricks(width: int, height: int, numberOfBricksTypes: int,
                    maxBrickRibSize: int) -> List[LegoBrick]:
-    maxBrickSize = maxBrickRibSize + 1
     bricks = []
-    while len(bricks) < numberOfBricksTypes:
-        width = np.random.randint(1, maxBrickSize)
-        height = np.random.randint(1, maxBrickSize)
-        if width > height:
-            temp = height
-            height = width
-            width = temp
-        brick = LegoBrick(width, height)
-        if brick not in bricks:
-            bricks.append(brick)
+    if numberOfBricksTypes == -1:
+        bricks.append(LegoBrick(1, 1))
+        bricks.append(LegoBrick(2, 1))
+        bricks.append(LegoBrick(3, 1))
+        bricks.append(LegoBrick(4, 1))
+        bricks.append(LegoBrick(5, 1))
+        bricks.append(LegoBrick(8, 1))
+        bricks.append(LegoBrick(2, 2))
+        bricks.append(LegoBrick(3, 2))
+        bricks.append(LegoBrick(4, 2))
+        bricks.append(LegoBrick(5, 2))
+        bricks.append(LegoBrick(8, 2))
+    else:
+        maxBrickSize = maxBrickRibSize + 1
+        bricks = []
+        while len(bricks) < numberOfBricksTypes:
+            width = np.random.randint(1, maxBrickSize)
+            height = np.random.randint(1, maxBrickSize)
+            if width > height:
+                temp = height
+                height = width
+                width = temp
+            brick = LegoBrick(width, height)
+            if brick not in bricks:
+                bricks.append(brick)
 
     print("\nSelected Bricks:")
     for i in range(len(bricks)):
@@ -159,7 +230,7 @@ def drawStatisticsPlot(gaResultHandler: GaResultHandler):
         num += 1
 
     plt.suptitle(
-        "2D-LEGO Coverage Problem Genetic Algorithm Solution Statistics",
+        "Statistics of Genetic Algorithm Solution to 2D-LEGO Coverage Problem ",
         fontsize=16,
         color="black",
     )
@@ -174,28 +245,49 @@ def drawStatisticsPlot(gaResultHandler: GaResultHandler):
         pass  # ignored
 
 
-def drawResultPlot(result: LegoBrickLayout):
+def drawResultPlot(drawType: int, data: np.ndarray, covered: int):
 
-    area = result.getAreaMatrix()
-    maxId = area.max()
-    # create discrete colormap
-    cmap = colors.ListedColormap(['red', 'blue'])
-    bounds = [-1, 0.1, maxId + 1]
-    norm = colors.BoundaryNorm(bounds, cmap.N)
+    nx, ny = data.shape
+    indx, indy = np.arange(nx), np.arange(ny)
+    x, y = np.meshgrid(indx, indy)
 
     fig, ax = plt.subplots()
 
-    ax.imshow(result.getAreaMatrix(), cmap=cmap, norm=norm)
+    if drawType == 1:
+        maxId = data.max()
+        # create discrete colormap
+        cmap = colors.ListedColormap(["red", "blue"])
+        bounds = [-1, 0.1, maxId + 1]
+        norm = colors.BoundaryNorm(bounds, cmap.N)
+        ax.imshow(data.T, cmap=cmap, norm=norm)
+    else:
+        # plot grid values
+        ax.imshow(data.T, interpolation="nearest", cmap=cm.YlGn)
 
-    ax.set_xticks(np.arange(start=0, stop=result.getWidth(), step=1))
-    ax.set_yticks(np.arange(start=0, stop=result.getHeight(), step=1))
+    cond = nx * ny <= 25 * 25
+
+    for xval, yval in zip(x.flatten(), y.flatten()):
+        zval = data[xval, yval]
+        if zval == 0 or cond:
+            t = "%d" % (zval, )  # format value with 1 decimal point
+            c = "w" if zval > 0.75 else "k"  # if dark-green, change text color to white
+            ax.text(xval, yval, t, color=c, va="center", ha="center")
+
+    ax.set_xticks(indx + 0.5)
+    ax.set_yticks(indy + 0.5)
+    ax.xaxis.tick_top()
+
+    for a, ind in zip((ax.xaxis, ax.yaxis), (indx, indy)):
+        a.set_major_formatter(ticker.NullFormatter())
+        a.set_minor_locator(ticker.FixedLocator(ind))
+
     # draw gridlines
     ax.grid(
-        which='major', axis='both', linestyle='-', color='k', linewidth=0.5)
+        which="major", axis="both", linestyle="-", color="w", linewidth=0.5)
 
     plt.suptitle(
-        "2D-LEGO Coverage Problem Genetic Algorithm Solution\n\nCoverage %d/%d"
-        % (result.getCoveredArea(), (result.getWidth() * result.getHeight())),
+        "Genetic Algorithm Solution to 2D-LEGO Coverage Problem \n\nCoverage %d/%d"
+        % (covered, (nx * ny)),
         fontsize=16,
         color="black",
     )
@@ -208,9 +300,10 @@ def drawResultPlot(result: LegoBrickLayout):
 
 
 def main(argv):
+    width, height, numberOfBricksTypes, maxBrickRibSize, populationSize, generations, mutationThreshold, verbose, dispayType = readArguments(
+        argv)
     try:
-        width, height, numberOfBricksTypes, maxBrickRibSize, populationSize, generations, mutationThreshold, verbose = readArguments(
-            argv)
+
         bricks = generateBricks(width, height, numberOfBricksTypes,
                                 maxBrickRibSize)
         collection = generateCollection(width, height, bricks)
@@ -221,19 +314,49 @@ def main(argv):
         result = ga.evolveGeneration(
             nTimes=generations, generationResultHandler=resultHandler)
 
-        print("Best layer cover %d from %d" %
+        print("\nBest layer cover %d from %d" %
               (result.getCoveredArea(),
                (result.getWidth() * result.getHeight())))
 
+        # Decrease the IDs to display
+
+        resMat = result.getAreaMatrix()
+
+        index = 50
+        mapping = {}
+
+        for i in range(resMat.shape[0]):
+            for j in range(resMat.shape[1]):
+                if resMat[i][j] == 0:
+                    continue
+                mapped = mapping.get(resMat[i][j])
+                if mapped is None:
+                    mapping[resMat[i][j]] = index
+                    resMat[i][j] = index
+                    index += 1
+                else:
+                    resMat[i][j] = mapped
+
+        if (verbose):
+            print("\nBest Coverage:")
+            for i in range(result.getWidth()):
+                print("".join(("%5d" % x) for x in resMat[i]))
+
         drawStatisticsPlot(resultHandler)
-        drawResultPlot(result)
+        drawResultPlot(dispayType, resMat, result.getCoveredArea())
         plt.show()
 
     except Exception as e:
+        print(
+        )  # There is a chance that there was a exception in the middle of progress bar
         print("Some error occurred during the running! Process aborted..")
         if (verbose):
             print("\nError:", str(e))
             traceback.print_tb(e.__traceback__)
+        else:
+            print(
+                "For more details, it is recommended to run with the verbose on option."
+            )
 
 
 # Run the program

@@ -1,5 +1,6 @@
 # ga_utils.py
 
+import math
 from enum import Enum
 from typing import List, Tuple
 
@@ -49,6 +50,14 @@ def evolve(
 def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout):
     firstChild = None
     secondChild = None
+
+    maxCrossoverRib = max(
+        1,
+        math.sqrt(
+            min(firstParent.getHeight(), firstParent.getWidth(),
+                secondParent.getHeight(), secondParent.getWidth())))
+
+    i = 0
     while True:
         firstChild = firstParent.copy()
         secondChild = secondParent.copy()
@@ -56,25 +65,28 @@ def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout):
         height = min(firstParent.getHeight(), secondParent.getHeight())
 
         xPoints = np.sort(np.random.choice(width, 2, False))
-        while xPoints[1] - xPoints[0] < 1:
+        while xPoints[1] - xPoints[0] < 1 or xPoints[1] - xPoints[
+                0] > maxCrossoverRib:
             xPoints = np.sort(np.random.choice(width, 2, False))
+
         yPoints = np.sort(np.random.choice(height, 2, False))
-        while yPoints[1] - yPoints[0] < 1:
+        while yPoints[1] - yPoints[0] < 1 or yPoints[1] - yPoints[
+                0] > maxCrossoverRib:
             yPoints = np.sort(np.random.choice(height, 2, False))
 
-        firstChildCross, firstChildConstraints = __getCrossAndConstraints(
-            xPoints, yPoints, firstChild)
-        secondChildCross, secondChildConstraints = __getCrossAndConstraints(
-            xPoints, yPoints, secondChild)
+        firstChildCross, firstChildConstraints = getCrossAndConstraints(
+            xPoints, yPoints, firstChild, True)
+        secondChildCross, secondChildConstraints = getCrossAndConstraints(
+            xPoints, yPoints, secondChild, True)
 
-        if len(firstChildCross) == 0 and len(secondChildCross) == 0:
-            continue
-
-        __validateCrossData(firstChildCross, firstChildConstraints,
-                            secondChildCross, secondChildConstraints)
-
-        if len(firstChildCross) != 0 or len(secondChildCross) != 0:
+        if (len(firstChildCross) != 0 or len(secondChildCross) != 0
+            ) and len(firstChildConstraints) == 0 and len(
+                secondChildConstraints) == 0:
             break
+
+        i += 1
+        if i == 100:
+            return None
 
     firstChildBricks = firstChild.getAreaBricks()
     for brick in firstChildCross:
@@ -89,12 +101,12 @@ def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout):
 
     for brick in firstChildCross:
         if not secondChild.tryAddBrick(brick[0], brick[1], brick[2], brick[3]):
-            # FIXME ROMAN: should not happend!"
+            # should not happend!"
             return None
         secondChild.validateLayer()
     for brick in secondChildCross:
         if not firstChild.tryAddBrick(brick[0], brick[1], brick[2], brick[3]):
-            # FIXME ROMAN: should not happend!"
+            # should not happend!"
             return None
         firstChild.validateLayer()
 
@@ -110,52 +122,23 @@ def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout):
     return (firstChild, secondChild)
 
 
-def __validateCrossData(firstCross, firstConstraints, secondCross,
-                        secondConstraints):
-
-    dirty = True
-    while dirty:
-        dirty = False
-        for crossBrick in list(firstCross):
-            crossBrickRec = __getBrickRectangle(crossBrick)
-            for constarintBrick in secondConstraints:
-                constarintBrickRec = __getBrickRectangle(constarintBrick)
-                if Utils.rectangleOverlappedArea(crossBrickRec,
-                                                 constarintBrickRec) != 0:
-                    dirty = True
-                    firstCross.remove(crossBrick)
-                    firstConstraints.append(crossBrick)
-                    break
-        for crossBrick in list(secondCross):
-            crossBrickRec = __getBrickRectangle(crossBrick)
-            for constarintBrick in firstConstraints:
-                constarintBrickRec = __getBrickRectangle(constarintBrick)
-                if Utils.rectangleOverlappedArea(crossBrickRec,
-                                                 constarintBrickRec) != 0:
-                    dirty = True
-                    secondCross.remove(crossBrick)
-                    secondConstraints.append(crossBrick)
-                    break
-
-
 def __getBrickRectangle(brick) -> Rectangle:
     if brick[3] == LegoBrickLayout.Orientation.HORIZONTAL:
-        return Rectangle(brick[1] - 1, brick[0] - 1,
-                         brick[1] + brick[2].getWidth(),
+        return Rectangle(brick[1], brick[0], brick[1] + brick[2].getWidth(),
                          brick[0] + brick[2].getHeight())
     else:
-        return Rectangle(brick[1] - 1, brick[0] - 1,
-                         brick[1] + brick[2].getHeight(),
+        return Rectangle(brick[1], brick[0], brick[1] + brick[2].getHeight(),
                          brick[0] + brick[2].getWidth())
 
 
-def __getCrossAndConstraints(xRange: List[int], yRange: List[int],
-                             layout: LegoBrickLayout) -> Tuple[List, List]:
+def getCrossAndConstraints(xRange: List[int], yRange: List[int],
+                           layout: LegoBrickLayout,
+                           stopOnOneConstaint: bool) -> Tuple[List, List]:
     layoutBricks = layout.getAreaBricks()
     cross = []
     constraints = []
 
-    crossRect = Rectangle(xRange[0], yRange[0], xRange[1], yRange[1])
+    crossRect = Rectangle(xRange[0], yRange[0], xRange[1] + 1, yRange[1] + 1)
     for brick in layoutBricks:
         isCross = False
         if brick[3] == LegoBrickLayout.Orientation.HORIZONTAL:
@@ -175,19 +158,9 @@ def __getCrossAndConstraints(xRange: List[int], yRange: List[int],
             brickRect = __getBrickRectangle(brick)
             if Utils.rectangleOverlappedArea(crossRect, brickRect) > 0:
                 constraints.append(brick)
+                if (stopOnOneConstaint):
+                    break
     return cross, constraints
-
-
-def VisibilityForTests_getCrossAndConstraints(
-        xRange: List[int], yRange: List[int],
-        layout: LegoBrickLayout) -> Tuple[List, List]:
-    return __getCrossAndConstraints(xRange, yRange, layout)
-
-
-def VisibilityForTests_validateCrossData(firstCross, firstConstraints,
-                                         secondCross, secondConstraints):
-    return __validateCrossData(firstCross, firstConstraints, secondCross,
-                               secondConstraints)
 
 
 def tryMutate(mutationThreshold: float, layer: LegoBrickLayout) -> None:
