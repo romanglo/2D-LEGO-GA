@@ -125,6 +125,10 @@ class LegoBrickLayout(object):
 
     def __tryAdd(self, row: int, column: int, brick: LegoBrick,
                  firstVertical: bool) -> bool:
+        if brick.getWidth() == brick.getHeight():
+            # Symmetric bricks have no meaning to insert orientation
+            return self.__tryAddHorizontal(row, column, brick)
+
         if firstVertical:
             if not self.__tryAddVertical(row, column, brick):
                 return self.__tryAddHorizontal(row, column, brick)
@@ -212,6 +216,10 @@ class LegoBrickLayout(object):
 
         if row < 0 or column < 0 or row >= self.__width or column >= self.__height:
             return False
+
+        if brick.getWidth() == brick.getHeight():
+            # Symmetric bricks have no meaning to insert orientation
+            return self.__tryAddHorizontal(row, column, brick)
 
         if orientation is None:
             firstVertical = bool(random.getrandbits(1))
@@ -435,15 +443,22 @@ class LegoBrickLayout(object):
             return False
 
         otherLayoutBricks = otherLayout.getAreaBricks()
+
         if len(self.__layout) != len(otherLayoutBricks):
             return False
 
         for i in range(len(self.__layout)):
             if self.__layout[i][0] != otherLayoutBricks[i][0] or self.__layout[
-                    i][1] != otherLayoutBricks[i][1] or self.__layout[i][2].getWidth(
-                    ) != otherLayoutBricks[i][2].getWidth() or self.__layout[i][
-                        2].getHeight() != otherLayoutBricks[i][2].getHeight(
-                        ) or self.__layout[i][3] != otherLayoutBricks[i][3]:
+                    i][1] != otherLayoutBricks[i][1]:
+                # different coordinates
+                return False
+            if self.__layout[i][2].getWidth() != otherLayoutBricks[i][
+                    2].getWidth() or self.__layout[i][2].getHeight(
+                    ) != otherLayoutBricks[i][2].getHeight():
+                # different size
+                return False
+            if self.__layout[i][3] != otherLayoutBricks[i][3]:
+                # different orientation
                 return False
         return True
 

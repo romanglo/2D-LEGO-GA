@@ -99,9 +99,13 @@ class LegoBrickGA(object):
             if not layout.isInitialized():
                 raise NotInitializedException(
                     "Failed on try to initialize LegoBrickLayout")
+            toAdd = True
             for layoutInPopulation in population:
                 if (layoutInPopulation.hasSameCoverage(layout)):
+                    toAdd = False
                     break
+            if not toAdd:
+                continue
             population.append(layout)
             Utils.printProgressBar(
                 len(population),

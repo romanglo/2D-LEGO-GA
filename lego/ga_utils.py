@@ -47,31 +47,34 @@ def evolve(
 
 
 def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout):
-    firstChild = firstParent.copy()
-    secondChild = secondParent.copy()
-    width = min(firstParent.getWidth(), secondParent.getWidth())
-    height = min(firstParent.getHeight(), secondParent.getHeight())
+    firstChild = None
+    secondChild = None
+    while True:
+        firstChild = firstParent.copy()
+        secondChild = secondParent.copy()
+        width = min(firstParent.getWidth(), secondParent.getWidth())
+        height = min(firstParent.getHeight(), secondParent.getHeight())
 
-    xPoints = np.sort(np.random.choice(width, 2, False))
-    while xPoints[1] - xPoints[0] <= 1:
         xPoints = np.sort(np.random.choice(width, 2, False))
-    yPoints = np.sort(np.random.choice(height, 2, False))
-    while yPoints[1] - yPoints[0] <= 1:
+        while xPoints[1] - xPoints[0] < 1:
+            xPoints = np.sort(np.random.choice(width, 2, False))
         yPoints = np.sort(np.random.choice(height, 2, False))
+        while yPoints[1] - yPoints[0] < 1:
+            yPoints = np.sort(np.random.choice(height, 2, False))
 
-    firstChildCross, firstChildConstraints = __getCrossAndConstraints(
-        xPoints, yPoints, firstChild)
-    secondChildCross, secondChildConstraints = __getCrossAndConstraints(
-        xPoints, yPoints, secondChild)
+        firstChildCross, firstChildConstraints = __getCrossAndConstraints(
+            xPoints, yPoints, firstChild)
+        secondChildCross, secondChildConstraints = __getCrossAndConstraints(
+            xPoints, yPoints, secondChild)
 
-    if len(firstChildCross) == 0 and len(secondChildCross) == 0:
-        return (firstChild, secondChild)
+        if len(firstChildCross) == 0 and len(secondChildCross) == 0:
+            continue
 
-    __validateCrossData(firstChildCross, firstChildConstraints,
-                        secondChildCross, secondChildConstraints)
+        __validateCrossData(firstChildCross, firstChildConstraints,
+                            secondChildCross, secondChildConstraints)
 
-    if len(firstChildCross) == 0 and len(secondChildCross) == 0:
-        return (firstChild, secondChild)
+        if len(firstChildCross) != 0 or len(secondChildCross) != 0:
+            break
 
     firstChildBricks = firstChild.getAreaBricks()
     for brick in firstChildCross:
@@ -137,11 +140,13 @@ def __validateCrossData(firstCross, firstConstraints, secondCross,
 
 def __getBrickRectangle(brick) -> Rectangle:
     if brick[3] == LegoBrickLayout.Orientation.HORIZONTAL:
-        return Rectangle(brick[0], brick[1], brick[0] + brick[2].getWidth(),
-                         brick[1] + brick[2].getHeight())
+        return Rectangle(brick[1] - 1, brick[0] - 1,
+                         brick[1] + brick[2].getWidth(),
+                         brick[0] + brick[2].getHeight())
     else:
-        return Rectangle(brick[0], brick[1], brick[0] + brick[2].getHeight(),
-                         brick[1] + brick[2].getWidth())
+        return Rectangle(brick[1] - 1, brick[0] - 1,
+                         brick[1] + brick[2].getHeight(),
+                         brick[0] + brick[2].getWidth())
 
 
 def __getCrossAndConstraints(xRange: List[int], yRange: List[int],
@@ -150,59 +155,39 @@ def __getCrossAndConstraints(xRange: List[int], yRange: List[int],
     cross = []
     constraints = []
 
+    crossRect = Rectangle(xRange[0], yRange[0], xRange[1], yRange[1])
     for brick in layoutBricks:
+        isCross = False
         if brick[3] == LegoBrickLayout.Orientation.HORIZONTAL:
-            if brick[0] > xRange[0] and brick[1] > yRange[
-                    0] and brick[0] + brick[2].getWidth() < xRange[
-                        1] and brick[1] + brick[2].getHeight() < yRange[1]:
+            if brick[1] >= xRange[0] and brick[0] >= yRange[0] and brick[
+                    1] + brick[2].getWidth() - 1 <= xRange[1] and brick[
+                        0] + brick[2].getHeight() - 1 <= yRange[1]:
                 # all the brick in crossover area
                 cross.append(brick)
-            elif (brick[0] > xRange[0] and brick[0] < xRange[1]
-                  and brick[1] > yRange[0] and brick[1] < yRange[1]):
-                # (x,y) in the crossover area
-                constraints.append(brick)
-            elif (brick[0] + brick[2].getWidth() > xRange[0]
-                  and brick[0] + brick[2].getWidth() < xRange[1]
-                  and brick[1] > yRange[0] and brick[1] < yRange[1]):
-                # (x+ brick_width,y) in the crossover area
-                constraints.append(brick)
-            elif (brick[0] > xRange[0] and brick[0] < xRange[1]
-                  and brick[1] + brick[2].getHeight() > yRange[0]
-                  and brick[1] + brick[2].getHeight() < yRange[1]):
-                # (x,y + brick_height) in the crossover area
-                constraints.append(brick)
-            elif (brick[0] + brick[2].getWidth() > xRange[0]
-                  and brick[0] + brick[2].getWidth() < xRange[1]
-                  and brick[1] + brick[2].getHeight() > yRange[0]
-                  and brick[1] + brick[2].getHeight() < yRange[1]):
-                # (x+ brick_width,y + brick_height) in the crossover area
-                constraints.append(brick)
+                isCross = True
         else:
-            if brick[0] > xRange[0] and brick[1] > yRange[
-                    0] and brick[0] + brick[2].getHeight() < xRange[
-                        1] and brick[1] + brick[2].getWidth() < yRange[1]:
+            if brick[1] >= xRange[0] and brick[0] >= yRange[
+                    0] and brick[1] + brick[2].getHeight() - 1 <= xRange[
+                        1] and brick[0] + brick[2].getWidth() - 1 <= yRange[1]:
                 cross.append(brick)
-            elif (brick[0] > xRange[0] and brick[0] < xRange[1]
-                  and brick[1] > yRange[0] and brick[1] < yRange[1]):
-                # (x,y) in the crossover area
-                constraints.append(brick)
-            elif (brick[0] + brick[2].getHeight() > xRange[0]
-                  and brick[0] + brick[2].getHeight() < xRange[1]
-                  and brick[1] > yRange[0] and brick[1] < yRange[1]):
-                # (x+ brick_height,y) in the crossover area
-                constraints.append(brick)
-            elif (brick[0] > xRange[0] and brick[0] < xRange[1]
-                  and brick[1] + brick[2].getWidth() > yRange[0]
-                  and brick[1] + brick[2].getWidth() < yRange[1]):
-                # (x,y + brick_width) in the crossover area
-                constraints.append(brick)
-            elif (brick[0] + brick[2].getHeight() > xRange[0]
-                  and brick[0] + brick[2].getHeight() < xRange[1]
-                  and brick[1] + brick[2].getWidth() > yRange[0]
-                  and brick[1] + brick[2].getWidth() < yRange[1]):
-                # (x+ brick_height,y + brick_width) in the crossover area
+                isCross = True
+        if not isCross:
+            brickRect = __getBrickRectangle(brick)
+            if Utils.rectangleOverlappedArea(crossRect, brickRect) > 0:
                 constraints.append(brick)
     return cross, constraints
+
+
+def VisibilityForTests_getCrossAndConstraints(
+        xRange: List[int], yRange: List[int],
+        layout: LegoBrickLayout) -> Tuple[List, List]:
+    return __getCrossAndConstraints(xRange, yRange, layout)
+
+
+def VisibilityForTests_validateCrossData(firstCross, firstConstraints,
+                                         secondCross, secondConstraints):
+    return __validateCrossData(firstCross, firstConstraints, secondCross,
+                               secondConstraints)
 
 
 def tryMutate(mutationThreshold: float, layer: LegoBrickLayout) -> None:
