@@ -68,6 +68,10 @@ class LegoBrickGA(object):
             fill='#')
 
         for i in range(nTimes):
+            if population[0].getCoveredArea(
+            ) == population[0].getWidth() * population[1].getHeight():
+                # found optimal solution
+                return population[0]
             population = self.__evolve(population)
             Utils.printProgressBar(
                 i + 1,
@@ -118,6 +122,8 @@ class LegoBrickGA(object):
                 prefix="Progress",
                 suffix="of population have created",
                 fill='#')
+
+        population.sort(key=lambda item: item.getCoveredArea(), reverse=True)
         print("A population of", len(population), "was created.")
         return population
 
@@ -125,7 +131,6 @@ class LegoBrickGA(object):
                  population: List[LegoBrickLayout]) -> List[LegoBrickLayout]:
         newPopulation = []
 
-        population.sort(key=lambda item: item.getCoveredArea(), reverse=True)
         newPopulation.append(population[0])
         newPopulation.append(population[1])
 
@@ -164,5 +169,8 @@ class LegoBrickGA(object):
 
             newPopulation.append(potentialToAdd[0])
             newPopulation.append(potentialToAdd[1])
+
+        newPopulation.sort(
+            key=lambda item: item.getCoveredArea(), reverse=True)
 
         return newPopulation

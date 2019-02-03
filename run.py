@@ -20,9 +20,9 @@ DEFAULT_WIDTH = 25
 DEFAULT_HEIGHT = 25
 DEFAULT_NUMBER_OF_BRICKS_TYPES = -1
 DEFAULT_MAX_BRICK_RIB_SIZE = 4
-DEFAULT_GENERATIONS = 10
-DEFAULT_POPULATION_SIZE = 10
-DEFAULT_MUTATION_THRESHOLD = 0.1
+DEFAULT_GENERATIONS = 100
+DEFAULT_POPULATION_SIZE = 100
+DEFAULT_MUTATION_THRESHOLD = 0.2
 DEFAULT_VERBOSE = True
 DEFAULT_COLOR_TYPE = 2
 
@@ -321,17 +321,18 @@ def main(argv):
         result = ga.evolveGeneration(
             nTimes=generations, generationResultHandler=resultHandler)
 
-        print("\nBest layer cover %d from %d" %
+        if result.getCoveredArea() == result.getWidth() * result.getHeight():
+            print("\nFound an optimal solution, a full coverage after",
+                  resultHandler.generations, " generations!")
+        print("\nBest layer cover %d from %d after %d generations" %
               (result.getCoveredArea(),
-               (result.getWidth() * result.getHeight())))
+               (result.getWidth() * result.getHeight()),
+               resultHandler.generations))
 
-        # Decrease the IDs to display
-
+        # decrease the IDs to display:
         resMat = result.getAreaMatrix()
-
         index = 50
         mapping = {}
-
         for i in range(resMat.shape[0]):
             for j in range(resMat.shape[1]):
                 if resMat[i][j] == 0:
