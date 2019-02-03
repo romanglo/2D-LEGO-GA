@@ -12,6 +12,10 @@ from lego.utils import Rectangle
 
 
 class Mutations(Enum):
+    """
+    Mutation is an enum Which represents the possible mutations.
+    You can cancel the use of certain mutations by changing the list MutationsList.
+    """
     CHANGE = 1
     ADD = 2
     REMOVE = 3
@@ -25,7 +29,7 @@ Change this list will effect evolve() method.
 """
 
 
-class Directions(Enum):
+class __Directions(Enum):
     LEFT = 1
     UP = 2
     RIGHT = 3
@@ -35,6 +39,23 @@ class Directions(Enum):
 def evolve(
         firstParent: LegoBrickLayout, secondParent: LegoBrickLayout,
         mutationThreshold: float) -> Tuple[LegoBrickLayout, LegoBrickLayout]:
+    """
+    The method evolve 2 LegoBrickLayout (parents) using crossover and mutation.
+
+    Parameters
+    ----------
+    firstParent : LegoBrickLayout
+        First layer to evolve.
+    secondParent : LegoBrickLayout
+        Second layer to evolve.
+    mutationThreshold : float
+        The probability of a mutation occurring, in range [0.0, 1.0]
+
+    Returns
+    -------
+    Tuple[LegoBrickLayout, LegoBrickLayout]
+        The 2 evolved LegoBrickLayout (children) or None if an error occurred
+    """
     children = crossover(firstParent, secondParent)
 
     if children is None:
@@ -47,7 +68,23 @@ def evolve(
     return children
 
 
-def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout):
+def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout
+              ) -> Tuple[LegoBrickLayout, LegoBrickLayout]:
+    """
+    The method crossover 2 LegoBrickLayout.
+
+    Parameters
+    ----------
+    firstParent : LegoBrickLayout
+        First layer to crossover.
+    secondParent : LegoBrickLayout
+        Second layer to crossover.
+
+    Returns
+    -------
+    Tuple[LegoBrickLayout, LegoBrickLayout]
+        The 2 crossovers children (LegoBrickLayout) or None if the operation did not succeed
+    """
     firstChild = None
     secondChild = None
 
@@ -101,12 +138,12 @@ def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout):
 
     for brick in firstChildCross:
         if not secondChild.tryAddBrick(brick[0], brick[1], brick[2], brick[3]):
-            # should not happend!"
+            # should not happend!
             return None
         secondChild.validateLayer()
     for brick in secondChildCross:
         if not firstChild.tryAddBrick(brick[0], brick[1], brick[2], brick[3]):
-            # should not happend!"
+            # should not happend!
             return None
         firstChild.validateLayer()
 
@@ -134,6 +171,25 @@ def __getBrickRectangle(brick) -> Rectangle:
 def getCrossAndConstraints(xRange: List[int], yRange: List[int],
                            layout: LegoBrickLayout,
                            stopOnOneConstaint: bool) -> Tuple[List, List]:
+    """
+    The method finds the bricks that are fully within the range and partially within the area.
+
+    Parameters
+    ----------
+    xRange : List[int]
+        X range for check
+    yRange : List[int]
+        y range for check
+    layout : LegoBrickLayout
+        The layout to check
+    stopOnOneConstaint : bool
+        If true will stop searching once finding brick that is partially within the range.
+
+    Returns
+    -------
+    Tuple[List, List]
+        2 lists, the first one is list of the bricks in cross area and the second one is list of the constraints.
+    """
     layoutBricks = layout.getAreaBricks()
     cross = []
     constraints = []
@@ -164,6 +220,18 @@ def getCrossAndConstraints(xRange: List[int], yRange: List[int],
 
 
 def tryMutate(mutationThreshold: float, layer: LegoBrickLayout) -> None:
+    """
+    The method try to perform a random mutation on a layer.
+    The method chose a mutation from MutationsList.
+
+    Parameters
+    ----------
+    mutationThreshold : float
+        The probability of a mutation occurring, in range [0.0, 1.0]
+    layout : LegoBrickLayout
+        The layout to mutate
+
+    """
     rndValue = np.random.rand()
     if rndValue > mutationThreshold:
         return
@@ -180,6 +248,19 @@ def tryMutate(mutationThreshold: float, layer: LegoBrickLayout) -> None:
 
 
 def changeMutation(layer: LegoBrickLayout) -> bool:
+    """
+    The method try to perform a change mutation on a layer.
+
+    Parameters
+    ----------
+    layout : LegoBrickLayout
+        The layout to mutate
+
+    Returns
+    ----------
+    bool
+        true if the mutation succeed
+    """
     if layer.getCollection().getAmountOfAvailableBricks() == 0:
         # There are no more bricks to change
         return False
@@ -215,6 +296,19 @@ def changeMutation(layer: LegoBrickLayout) -> bool:
 
 
 def addMutation(layer: LegoBrickLayout) -> bool:
+    """
+    The method try to perform an add mutation on a layer.
+
+    Parameters
+    ----------
+    layout : LegoBrickLayout
+        The layout to mutate
+
+    Returns
+    ----------
+    bool
+        true if the mutation succeed
+    """
     if layer.getCollection().getAmountOfAvailableBricks() == 0:
         # There are no more bricks to add
         return False
@@ -236,6 +330,19 @@ def addMutation(layer: LegoBrickLayout) -> bool:
 
 
 def removeMutation(layer: LegoBrickLayout) -> bool:
+    """
+    The method try to perform a remove mutation on a layer.
+
+    Parameters
+    ----------
+    layout : LegoBrickLayout
+        The layout to mutate
+
+    Returns
+    ----------
+    bool
+        true if the mutation succeed
+    """
     if (len(layer.getAreaBricks()) == 0):
         # There are no more bricks to remove
         return False
@@ -248,6 +355,19 @@ def removeMutation(layer: LegoBrickLayout) -> bool:
 
 
 def moveMutation(layer: LegoBrickLayout) -> bool:
+    """
+    The method try to perform a move mutation on a layer.
+
+    Parameters
+    ----------
+    layout : LegoBrickLayout
+        The layout to mutate
+
+    Returns
+    ----------
+    bool
+        true if the mutation succeed
+    """
     if (len(layer.getAreaBricks()) == 0):
         # There are no more bricks to move
         return False
@@ -257,20 +377,20 @@ def moveMutation(layer: LegoBrickLayout) -> bool:
     layer.getAreaBricks().remove(brickToRemove)
     layer.validateLayer()
 
-    DirectionsList = list(Directions)
+    DirectionsList = list(__Directions)
     np.random.shuffle(DirectionsList)
     for direction in DirectionsList:
         added = False
-        if direction == Directions.LEFT:
+        if direction == __Directions.LEFT:
             added = layer.tryAddBrick(brickToRemove[0] - 1, brickToRemove[1],
                                       brickToRemove[2], brickToRemove[3])
-        elif direction == Directions.UP:
+        elif direction == __Directions.UP:
             added = layer.tryAddBrick(brickToRemove[0], brickToRemove[1] - 1,
                                       brickToRemove[2], brickToRemove[3])
-        elif direction == Directions.RIGHT:
+        elif direction == __Directions.RIGHT:
             added = layer.tryAddBrick(brickToRemove[0] + 1, brickToRemove[1],
                                       brickToRemove[2], brickToRemove[3])
-        elif direction == Directions.DOWN:
+        elif direction == __Directions.DOWN:
             added = layer.tryAddBrick(brickToRemove[0], brickToRemove[1] + 1,
                                       brickToRemove[2], brickToRemove[3])
         if added:

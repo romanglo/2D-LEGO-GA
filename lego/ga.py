@@ -123,13 +123,19 @@ class LegoBrickGA(object):
 
     def __evolve(self,
                  population: List[LegoBrickLayout]) -> List[LegoBrickLayout]:
+        newPopulation = []
+
+        # TODO ROMAN: Remove the next 3 statements when the bug in the cross will be fixed
+        population.sort(key=lambda item: item.getCoveredArea(), reverse=True)
+        newPopulation.append(population[0])
+        newPopulation.append(population[1])
+
         populationValue = np.sum(
             [item.getCoveredArea() for item in population])
         probabilities = []
         for item in population:
             probabilities.append(item.getCoveredArea() / populationValue)
 
-        newPopulation = []
         while (len(newPopulation) < len(population)):
             select = np.random.choice(
                 population, 2, replace=False, p=probabilities)

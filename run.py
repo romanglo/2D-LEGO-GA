@@ -20,8 +20,8 @@ DEFAULT_WIDTH = 25
 DEFAULT_HEIGHT = 25
 DEFAULT_NUMBER_OF_BRICKS_TYPES = -1
 DEFAULT_MAX_BRICK_RIB_SIZE = 4
-DEFAULT_GENERATIONS = 100
-DEFAULT_POPULATION_SIZE = 50
+DEFAULT_GENERATIONS = 10
+DEFAULT_POPULATION_SIZE = 10
 DEFAULT_MUTATION_THRESHOLD = 0.1
 DEFAULT_VERBOSE = True
 DEFAULT_COLOR_TYPE = 2
@@ -57,13 +57,12 @@ def readArguments(argv):
     generations = DEFAULT_GENERATIONS
     mutationThreshold = DEFAULT_MUTATION_THRESHOLD
     verbose = DEFAULT_VERBOSE
-    colorType = DEFAULT_VERBOSE
+    colorType = DEFAULT_COLOR_TYPE
     try:
         opts, args = getopt.getopt(argv, None, [
             "help", "width=", "height=", "types_num=", "max_brick=",
             "population=", "generations=", "mutation=", "verbose=", "color="
         ])
-        print(opts)
         for opt, arg in opts:
             if opt == "--help":
                 print(HELP)
@@ -90,17 +89,25 @@ def readArguments(argv):
         print(HELP_ON_ERROR)
         sys.exit()
 
-    print("\Arguments:")
-    print("-----------")
+    print("\nArguments:")
     print("width =", width)
     print("height =", height)
-    print("number of bricks types =", numberOfBricksTypes)
+    if numberOfBricksTypes == -1:
+        print("number of bricks types = default")
+    else:
+        print("number of bricks types =", numberOfBricksTypes)
     print("max brick rib size =", maxBrickRibSize)
     print("population size =", populationSize)
     print("generations =", generations)
     print("mutation threshold =", mutationThreshold)
-    print("verbose =", verbose)
-    print("Color type =", colorType)
+    if verbose == 1:
+        print("verbose = true")
+    else:
+        print("verbose = false")
+    if colorType == 1:
+        print("Color type = discrete")
+    else:
+        print("Color type = gradient")
 
     return width, height, numberOfBricksTypes, maxBrickRibSize, populationSize, generations, mutationThreshold, verbose, colorType
 

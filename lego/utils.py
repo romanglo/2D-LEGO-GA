@@ -1,3 +1,5 @@
+# utils.py
+
 from collections import namedtuple
 
 Rectangle = namedtuple("Rectangle", "xMin yMin xMax yMax")
@@ -33,7 +35,7 @@ def printProgressBar(iteration: int,
                      prefix: str = "",
                      suffix: str = "",
                      decimals: int = 1,
-                     length: int = 100,
+                     length: int = 50,
                      fill: str = "█") -> None:
     """
     Call in a loop to create terminal progress bar
@@ -56,7 +58,6 @@ def printProgressBar(iteration: int,
          bar fill character.
     """
 
-    # return
     if total == 0:
         total = 100
         iteration = 100
