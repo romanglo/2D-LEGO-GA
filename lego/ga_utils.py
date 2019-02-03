@@ -1,6 +1,5 @@
 # ga_utils.py
 
-import math
 from enum import Enum
 from typing import List, Tuple
 
@@ -88,37 +87,37 @@ def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout
     firstChild = None
     secondChild = None
 
-    maxCrossoverRib = max(
-        1,
-        math.sqrt(
-            min(firstParent.getHeight(), firstParent.getWidth(),
-                secondParent.getHeight(), secondParent.getWidth())))
-
     i = 0
+    firstChild = firstParent.copy()
+    secondChild = secondParent.copy()
+
     while True:
-        firstChild = firstParent.copy()
-        secondChild = secondParent.copy()
         width = min(firstParent.getWidth(), secondParent.getWidth())
         height = min(firstParent.getHeight(), secondParent.getHeight())
 
-        xPoints = np.sort(np.random.choice(width, 2, False))
-        while xPoints[1] - xPoints[0] < 1 or xPoints[1] - xPoints[
-                0] > maxCrossoverRib:
-            xPoints = np.sort(np.random.choice(width, 2, False))
+        crossWidth = np.random.randint(2, width)
+        crossHeight = np.random.randint(2, height)
 
-        yPoints = np.sort(np.random.choice(height, 2, False))
-        while yPoints[1] - yPoints[0] < 1 or yPoints[1] - yPoints[
-                0] > maxCrossoverRib:
-            yPoints = np.sort(np.random.choice(height, 2, False))
+        xPoints = np.random.choice(width - crossWidth, 2)
+        # TODO ROMAN:
+        #  yPoints = np.random.choice(height - crossHeight, 2)
+        yPoints = xPoints
 
         firstChildCross, firstChildConstraints = getCrossAndConstraints(
-            xPoints, yPoints, firstChild, True)
+            (xPoints[0], xPoints[0] + crossWidth - 1),
+            (yPoints[0], yPoints[0] + crossHeight - 1), firstChild)
         secondChildCross, secondChildConstraints = getCrossAndConstraints(
-            xPoints, yPoints, secondChild, True)
+            (xPoints[0], xPoints[0] + crossWidth - 1),
+            (yPoints[0], yPoints[0] + crossHeight - 1), secondChild)
+        # (xPoints[1], xPoints[1] + crossWidth - 1),
+        # (yPoints[1], yPoints[1] + crossHeight - 1), secondChild)
 
-        if (len(firstChildCross) != 0 or len(secondChildCross) != 0
-            ) and len(firstChildConstraints) == 0 and len(
-                secondChildConstraints) == 0:
+        if len(firstChildCross) == 0 and len(secondChildCross) == 0:
+            continue
+
+        if validateCrossAndConstaints(firstChildCross, firstChildConstraints,
+                                      secondChildCross,
+                                      secondChildConstraints):
             break
 
         i += 1
@@ -159,6 +158,26 @@ def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout
     return (firstChild, secondChild)
 
 
+def validateCrossAndConstaints(
+        firstChildCross: List, firstChildConstraints: List,
+        secondChildCross: List, secondChildConstraints: List) -> bool:
+    if len(secondChildConstraints) != 0:
+        for cross in firstChildCross:
+            crossRect = __getBrickRectangle(cross)
+            for constraint in secondChildConstraints:
+                constraintRect = __getBrickRectangle(constraint)
+                if Utils.rectangleOverlappedArea(crossRect, constraintRect):
+                    return False
+    if len(firstChildConstraints) != 0:
+        for cross in secondChildCross:
+            crossRect = __getBrickRectangle(cross)
+            for constraint in firstChildConstraints:
+                constraintRect = __getBrickRectangle(constraint)
+                if Utils.rectangleOverlappedArea(crossRect, constraintRect):
+                    return False
+    return True
+
+
 def __getBrickRectangle(brick) -> Rectangle:
     if brick[3] == LegoBrickLayout.Orientation.HORIZONTAL:
         return Rectangle(brick[1], brick[0], brick[1] + brick[2].getWidth(),
@@ -168,9 +187,11 @@ def __getBrickRectangle(brick) -> Rectangle:
                          brick[0] + brick[2].getWidth())
 
 
-def getCrossAndConstraints(xRange: List[int], yRange: List[int],
-                           layout: LegoBrickLayout,
-                           stopOnOneConstaint: bool) -> Tuple[List, List]:
+def getCrossAndConstraints(
+        xRange: Tuple[int, int],
+        yRange: Tuple[int, int],
+        layout: LegoBrickLayout,
+        stopOnOneConstaint: bool = False) -> Tuple[List, List]:
     """
     The method finds the bricks that are fully within the range and partially within the area.
 
@@ -314,7 +335,7 @@ def addMutation(layer: LegoBrickLayout) -> bool:
         return False
 
     emptyPlaces = np.where(layer.getAreaMatrix() == 0)
-    if emptyPlaces == 0:
+    if len(emptyPlaces[0]) == 0:
         return False
 
     rndIndex = np.random.randint(len(emptyPlaces[0]))

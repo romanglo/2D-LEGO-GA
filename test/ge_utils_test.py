@@ -50,6 +50,24 @@ class GaUtils_Test(unittest.TestCase):
         for _ in range(GaUtils_Test.__manyTestValue):
             self.test_changeMutation()
 
+    def test_addMutationToFullLayer(self):
+        width, height = 5, 5
+        collection = LegoBrickCollection()
+        collection.initialize(width * height * 2, [LegoBrick(1, 1)], uniform=True)
+        self.assertTrue(collection.isInitialized())
+        layout = LegoBrickLayout()
+        layout.initialize(width, height, collection)
+        self.assertTrue(layout.isInitialized())
+        copy = layout.copy()
+        sizeBeforeMutation = len(layout.getAreaBricks())
+        if GaUtils.addMutation(layout):
+            self.assertEqual(sizeBeforeMutation + 1,
+                             len(layout.getAreaBricks()))
+            self.assertFalse(copy.hasSameCoverage(layout))
+        else:
+            self.assertEqual(sizeBeforeMutation, len(layout.getAreaBricks()))
+            self.assertTrue(copy.hasSameCoverage(layout))
+
     def test_addMutation(self):
         layout = self.__createBrickLayout(5, 5)
         copy = layout.copy()
@@ -99,8 +117,8 @@ class GaUtils_Test(unittest.TestCase):
         layout = LegoBrickLayout()
         layout.initialize(width, height, collection)
         self.assertTrue(layout.isInitialized())
-        xRange = [1, 3]
-        yRange = [1, 3]
+        xRange = (1, 3)
+        yRange = (1, 3)
         cross, constraint = GaUtils.getCrossAndConstraints(
             xRange, yRange, layout, False)
         expectedSize = (xRange[1] - xRange[0] + 1) * (
@@ -117,20 +135,20 @@ class GaUtils_Test(unittest.TestCase):
         layout = LegoBrickLayout()
         layout.initialize(width, height, collection)
         self.assertTrue(layout.isInitialized())
-        xRange = [0, 1]
-        yRange = [0, 1]
+        xRange = (0, 1)
+        yRange = (0, 1)
         cross, constraint = GaUtils.getCrossAndConstraints(
             xRange, yRange, layout, False)
         self.assertEqual(len(cross), 1)
         self.assertEqual(len(constraint), 0)
-        xRange = [2, 3]
-        yRange = [2, 3]
+        xRange = (2, 3)
+        yRange = (2, 3)
         cross, constraint = GaUtils.getCrossAndConstraints(
             xRange, yRange, layout, False)
         self.assertEqual(len(cross), 1)
         self.assertEqual(len(constraint), 0)
-        xRange = [1, 2]
-        yRange = [1, 2]
+        xRange = (1, 2)
+        yRange = (1, 2)
         cross, constraint = GaUtils.getCrossAndConstraints(
             xRange, yRange, layout, False)
         self.assertEqual(len(cross), 0)
