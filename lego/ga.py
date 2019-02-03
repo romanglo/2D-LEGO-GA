@@ -125,7 +125,6 @@ class LegoBrickGA(object):
                  population: List[LegoBrickLayout]) -> List[LegoBrickLayout]:
         newPopulation = []
 
-        # TODO ROMAN: Remove the next 3 statements when the bug in the cross will be fixed
         population.sort(key=lambda item: item.getCoveredArea(), reverse=True)
         newPopulation.append(population[0])
         newPopulation.append(population[1])

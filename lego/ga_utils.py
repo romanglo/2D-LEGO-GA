@@ -98,26 +98,21 @@ def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout
         crossWidth = np.random.randint(2, width)
         crossHeight = np.random.randint(2, height)
 
-        xPoints = np.random.choice(width - crossWidth, 2)
-        # TODO ROMAN:
-        #  yPoints = np.random.choice(height - crossHeight, 2)
-        yPoints = xPoints
+        points = np.random.choice(width - crossWidth, 2)
 
         firstChildCross, firstChildConstraints = getCrossAndConstraints(
-            (xPoints[0], xPoints[0] + crossWidth - 1),
-            (yPoints[0], yPoints[0] + crossHeight - 1), firstChild)
+            (points[0], points[0] + crossWidth - 1),
+            (points[0], points[0] + crossHeight - 1), firstChild)
         secondChildCross, secondChildConstraints = getCrossAndConstraints(
-            (xPoints[0], xPoints[0] + crossWidth - 1),
-            (yPoints[0], yPoints[0] + crossHeight - 1), secondChild)
-        # (xPoints[1], xPoints[1] + crossWidth - 1),
-        # (yPoints[1], yPoints[1] + crossHeight - 1), secondChild)
+            (points[0], points[0] + crossWidth - 1),
+            (points[0], points[0] + crossHeight - 1), secondChild)
 
         if len(firstChildCross) == 0 and len(secondChildCross) == 0:
             continue
 
-        if validateCrossAndConstaints(firstChildCross, firstChildConstraints,
-                                      secondChildCross,
-                                      secondChildConstraints):
+        if validateCrossAndConstaints2(firstChildCross, firstChildConstraints,
+                                       secondChildCross,
+                                       secondChildConstraints):
             break
 
         i += 1
@@ -146,15 +141,6 @@ def crossover(firstParent: LegoBrickLayout, secondParent: LegoBrickLayout
             return None
         firstChild.validateLayer()
 
-    # TODO ROMAN: add this instead the code above, this is unsafe but more efficient add
-    # for brick in firstChildCross:
-    #     secondChildBricks.append(brick)
-    # for sec in secondChildCross:
-    #     firstChildBricks.append(brick)
-    # return (firstChild, secondChild)
-    # firstChild.validateLayer()
-    # secondChild.validateLayer()
-
     return (firstChild, secondChild)
 
 
@@ -176,6 +162,46 @@ def validateCrossAndConstaints(
                 if Utils.rectangleOverlappedArea(crossRect, constraintRect):
                     return False
     return True
+
+
+def validateCrossAndConstaints2(
+        firstChildCross: List, firstChildConstraints: List,
+        secondChildCross: List, secondChildConstraints: List) -> bool:
+    dirty = True
+    while dirty:
+        dirty = False
+
+        if len(secondChildConstraints) != 0:
+            toRemoveFromFirstCross = []
+            for cross in firstChildCross:
+                crossRect = __getBrickRectangle(cross)
+                for constraint in secondChildConstraints:
+                    constraintRect = __getBrickRectangle(constraint)
+                    if Utils.rectangleOverlappedArea(crossRect,
+                                                     constraintRect) != 0:
+                        firstChildConstraints.append(cross)
+                        toRemoveFromFirstCross.append(cross)
+                        dirty = True
+                        break
+            for toRemove in toRemoveFromFirstCross:
+                firstChildCross.remove(toRemove)
+
+        if len(firstChildConstraints) != 0:
+            toRemoveFromSecondCross = []
+            for cross in secondChildCross:
+                crossRect = __getBrickRectangle(cross)
+                for constraint in firstChildConstraints:
+                    constraintRect = __getBrickRectangle(constraint)
+                    if Utils.rectangleOverlappedArea(crossRect,
+                                                     constraintRect) != 0:
+                        secondChildConstraints.append(cross)
+                        toRemoveFromSecondCross.append(cross)
+                        dirty = True
+                        break
+            for toRemove in toRemoveFromSecondCross:
+                secondChildCross.remove(toRemove)
+
+    return len(firstChildCross) != 0 or len(secondChildCross) != 0
 
 
 def __getBrickRectangle(brick) -> Rectangle:
