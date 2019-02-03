@@ -26,7 +26,7 @@ DEFAULT_MUTATION_THRESHOLD = 0.2
 DEFAULT_VERBOSE = True
 DEFAULT_COLOR_TYPE = 2
 
-HELP = """\nGenetic Algorithm Solution to 2D-LEGO Coverage Problem:
+HELP = """\nGenetic Algorithm Solution to 2D-LEGO Brick Layout Problem:
               --help        : help string
               --width       : The width of the surface of the problem [default=%d]
               --height      : The height of the surface of the problem [default=%d]
@@ -37,7 +37,7 @@ HELP = """\nGenetic Algorithm Solution to 2D-LEGO Coverage Problem:
               --population  : The size of the population [default='%d']
               --generations : The amount of the generations [default='%d']
               --mutation    : The mutation chance, in the range [0.0, 1.0].
-                              0 will prevent the mutation [default='%d']
+                              0 will prevent the mutation [default='%f']
               --verbose     : 0 for minimum prints and 1 for more prints [default='%d']
               --color       : 1 for discrete coloring style, 2 for gradient coloring style [default='%d']
            """ % (
@@ -237,7 +237,7 @@ def drawStatisticsPlot(gaResultHandler: GaResultHandler):
         num += 1
 
     plt.suptitle(
-        "Statistics of Genetic Algorithm Solution to 2D-LEGO Coverage Problem ",
+        "Statistics of Genetic Algorithm Solution to 2D-LEGO Brick Layout Problem ",
         fontsize=16,
         color="black",
     )
@@ -293,7 +293,7 @@ def drawResultPlot(drawType: int, data: np.ndarray, covered: int):
         which="major", axis="both", linestyle="-", color="w", linewidth=0.5)
 
     plt.suptitle(
-        "Genetic Algorithm Solution to 2D-LEGO Coverage Problem \n\nCoverage %d/%d"
+        "Genetic Algorithm Solution to 2D-LEGO Brick Layout Problem\n\nCoverage %d/%d"
         % (covered, (nx * ny)),
         fontsize=16,
         color="black",
