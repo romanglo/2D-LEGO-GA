@@ -74,7 +74,7 @@ For example, we ran the project using the following command:
 ```
 python run.py --population 200 --generations 1000
 ```
-And the results we got are:<br>
+We stopped the process after 1113 generations and got the next result:<br><br>
 ![Result figure 2](https://github.com/romanglo/2D-LEGO-GA/blob/master/images/res_figure_2.png)
 <br>
 ![Result figure 1](https://github.com/romanglo/2D-LEGO-GA/blob/master/images/res_figure_1.png)
