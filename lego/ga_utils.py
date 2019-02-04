@@ -309,9 +309,11 @@ def changeMutation(layer: LegoBrickLayout) -> bool:
         true if the mutation succeed
     """
     if layer.getCollection().getAmountOfAvailableBricks() == 0:
-        # There are no more bricks to change
+        # There are no more bricks to add
         return False
-
+    if (len(layer.getAreaBricks()) == 0):
+        # There are no more bricks to remove
+        return False
     indexToRemove = np.random.randint(len(layer.getAreaBricks()))
     brickToRemove = layer.getAreaBricks()[indexToRemove]
     layer.getAreaBricks().remove(brickToRemove)

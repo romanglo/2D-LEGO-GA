@@ -102,11 +102,10 @@ class LegoBrickLayout(object):
 
         self.__initialized = True
 
-    def __createRandomLayout(self):
-        # TODO ROMAN: Gives too "good" coverage, probably unnecessary and should be deleted.
-        # numberOfAttempts = round(
-        #     math.sqrt(self.__brickCollection.getNumberOfBricksTypes()))
-        numberOfAttempts = 1
+    def __createRandomLayout_old(self):
+        """
+        This layout random creation function gives too "good" coverage and therefore is deprecated.
+        """
         for i in range(self.__width):
             for j in range(self.__height):
                 if self.__brickCollection.getAmountOfAvailableBricks() == 0:
@@ -114,13 +113,27 @@ class LegoBrickLayout(object):
                     return
                 if self.__area[i][j] != 0:
                     continue
-                for _ in range(numberOfAttempts):
-                    firstVertical = bool(random.getrandbits(1))
-                    selectedBrick = self.__brickCollection.getRandomBrick()
-                    if self.__tryAdd(i, j, selectedBrick, firstVertical):
-                        break
-                    else:
-                        self.__brickCollection.returnBrick(selectedBrick)
+                firstVertical = bool(random.getrandbits(1))
+                selectedBrick = self.__brickCollection.getRandomBrick()
+                if not self.__tryAdd(i, j, selectedBrick, firstVertical):
+                    self.__brickCollection.returnBrick(selectedBrick)
+
+        self.__layout.sort(key=lambda brickPos: (brickPos[0], brickPos[1]))
+
+    def __createRandomLayout(self):
+        for _ in range(self.__width * self.__height):
+            if self.__brickCollection.getAmountOfAvailableBricks() == 0:
+                # the bricks collection is empty
+                return
+            x = np.random.randint(self.__height)
+            y = np.random.randint(self.__width)
+            if self.__area[x][y] != 0:
+                continue
+            firstVertical = bool(random.getrandbits(1))
+            selectedBrick = self.__brickCollection.getRandomBrick()
+            if not self.__tryAdd(x, y, selectedBrick, firstVertical):
+                self.__brickCollection.returnBrick(selectedBrick)
+
         self.__layout.sort(key=lambda brickPos: (brickPos[0], brickPos[1]))
 
     def __tryAdd(self, row: int, column: int, brick: LegoBrick,

@@ -27,15 +27,15 @@ DEFAULT_VERBOSE = True
 DEFAULT_COLOR_TYPE = 2
 
 HELP = """\nGenetic Algorithm Solution to 2D-LEGO Brick Layout Problem:
-              --help        : help string
-              --width       : The width of the surface of the problem [default=%d]
-              --height      : The height of the surface of the problem [default=%d]
-              --types_num   : The amount of different bricks that will be used to solve the problem,
+              --help        : help description
+              --width       : The width of surface of the problem [default=%d]
+              --height      : The height of surface of the problem [default=%d]
+              --types_num   : The number of different bricks that will be used to solve the problem,
                               -1 for default bricks set [default=%d]
               --max_brick   : The maximum size of a brick rib [default='%d']
-                              it's irrelevant if the default set is selected in '-types'
-              --population  : The size of the population [default='%d']
-              --generations : The amount of the generations [default='%d']
+                              this is irrelevant if the default set is selected in '--types_num'
+              --population  : The size of population [default='%d']
+              --generations : The amount of generations [default='%d']
               --mutation    : The mutation chance, in the range [0.0, 1.0].
                               0 will prevent the mutation [default='%f']
               --verbose     : 0 for minimum prints and 1 for more prints [default='%d']
@@ -107,7 +107,7 @@ def readArguments(argv):
     if colorType == 1:
         print("Color type = discrete")
     else:
-        print("Color type = gradient")
+        print("color type = gradient")
 
     return width, height, numberOfBricksTypes, maxBrickRibSize, populationSize, generations, mutationThreshold, verbose, colorType
 
@@ -271,7 +271,7 @@ def drawResultPlot(drawType: int, data: np.ndarray, covered: int):
         # plot grid values
         ax.imshow(data.T, interpolation="nearest", cmap=cm.YlGn)
 
-    cond = nx * ny <= 25 * 25
+    cond = nx <= 25 and ny <= 25
 
     for xval, yval in zip(x.flatten(), y.flatten()):
         zval = data[xval, yval]
@@ -292,12 +292,31 @@ def drawResultPlot(drawType: int, data: np.ndarray, covered: int):
     ax.grid(
         which="major", axis="both", linestyle="-", color="w", linewidth=0.5)
 
+    ax.set_xlabel(
+        "\nNote!\nInside the cells, there is the brick ID (to identify their shapes), where 0 is uncovered place.\nThe IDs appear only in matrices smaller than 25x25, you can identify uncovered places by their white color.",
+        position=(0., 1e6),
+        horizontalalignment='left')
+
     plt.suptitle(
         "Genetic Algorithm Solution to 2D-LEGO Brick Layout Problem\n\nCoverage %d/%d"
         % (covered, (nx * ny)),
         fontsize=16,
         color="black",
     )
+
+    # font = {
+    #     'family': 'serif',
+    #     'color': 'darkred',
+    #     'weight': 'normal',
+    #     'size': 12,
+    # }
+
+    # plt.text(
+    #     1,
+    #     0.2,
+    #     ,
+    #     fontdict=font)
+
     try:
         # will work only on windows
         figManager = plt.get_current_fig_manager()

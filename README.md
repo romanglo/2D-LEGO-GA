@@ -40,17 +40,17 @@ python run.py
 In order to change the default configuration, you can use the following helping arguments:
 ```
 Genetic Algorithm Solution to 2D-LEGO Brick Layout Problem:
-              --help        : help string
-              --width       : The width of the surface of the problem [default=25]
-              --height      : The height of the surface of the problem [default=25]
-              --types_num   : The amount of different bricks that will be used to solve the problem,
+              --help        : help description
+              --width       : The width of surface of the problem [default=25]
+              --height      : The height of surface of the problem [default=25]
+              --types_num   : The number of different bricks that will be used to solve the problem,
                               -1 for default bricks set [default=-1]
               --max_brick   : The maximum size of a brick rib [default='4']
-                              it's irrelevant if the default set is selected in '-types'
-              --population  : The size of the population [default='100']
-              --generations : The amount of the generations [default='100']
+                              this is irrelevant if the default set is selected in '--types_num'
+              --population  : The size of population [default='100']
+              --generations : The amount of generations [default='100']
               --mutation    : The mutation chance, in the range [0.0, 1.0].
-                              0 will prevent the mutation [default='0.2']
+                              0 will prevent the mutation [default='0.200000']
               --verbose     : 0 for minimum prints and 1 for more prints [default='1']
               --color       : 1 for discrete coloring style, 2 for gradient coloring style [default='2']
 ```

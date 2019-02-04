@@ -64,7 +64,7 @@ class LegoBrickGA(object):
             0,
             nTimes,
             prefix="Progress",
-            suffix="of generations have evolved",
+            suffix="of generations has evolved",
             fill='#')
 
         for i in range(nTimes):
@@ -77,7 +77,7 @@ class LegoBrickGA(object):
                 i + 1,
                 nTimes,
                 prefix="Progress",
-                suffix="of generations have evolved",
+                suffix="of generations has evolved",
                 fill='#')
             self.__invokeHandler(generationResultHandler, i + 1, population)
 
@@ -97,7 +97,7 @@ class LegoBrickGA(object):
             0,
             self.__populationSize,
             prefix="Progress",
-            suffix="of population have created",
+            suffix="of population has created",
             fill='#')
 
         population = []
@@ -120,11 +120,11 @@ class LegoBrickGA(object):
                 len(population),
                 self.__populationSize,
                 prefix="Progress",
-                suffix="of population have created",
+                suffix="of population has created",
                 fill='#')
 
         population.sort(key=lambda item: item.getCoveredArea(), reverse=True)
-        print("A population of", len(population), "was created.")
+        print("A population of", len(population), " created.")
         return population
 
     def __evolve(self,
