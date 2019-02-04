@@ -1,8 +1,8 @@
 # Genetic Algorithm Solution to 2D-LEGO Coverage Problem
 The project suggests a solution to 2D-LEGO brick layout problem using genetic algorithm.
 
-In general, 2D-LEGO brick layout problem is a combinatoric optimization problem with the following details:<br>
-When given a layer with the size WxH and a bag of LEGO bricks, we want to find the optimal arrangement of the bricks on a paper to receive a maximum coverage.<br> 
+In general, 2D-LEGO brick layout problem is a combinatorial optimization problem with the following details:<br>
+When given a layer with the size WxH and a bag of LEGO bricks, we want to find the optimal arrangement of the bricks on a paper to receive a maximum coverage.<br>
 
 ## Getting Started
 
@@ -33,12 +33,12 @@ You can run all tests using:
 python tests.py
 ```
 in root directory.<br><br>
-The script tests the importing of the dependencies and runs unit tests on several key parts in the prjoect.
+The script tests the importing of the dependencies and runs unit tests on several key parts in the project.
 
 ### Running the project
 
 The entry point of the project is located in root directory.
-To run the program with default configuration using: 
+To run the program with default configuration using:
 ```
 python run.py
 ```
@@ -59,17 +59,25 @@ Genetic Algorithm Solution to 2D-LEGO Brick Layout Problem:
               --verbose     : 0 for minimum prints and 1 for more prints [default='1']
               --color       : 1 for discrete coloring style, 2 for gradient coloring style [default='2']
 ```
-For example, 
+For example,
 ```
 python run.py --width 100 --height 100 --types_num 8 --max_brick 7 --population 200 --generations 1000 --mutation 0.3 --verbose 0 --color 1
 ```
 
-**Importent Note!** Inserting parameters in the wrong ratio might lead to a situation that the algorithm reaches a "saturation" (can't produce a new generation which is different from the existing one). This situation will significantly slow down the program and might even lead to a complete halt of the algorithm. 
+**Important Note!** Inserting parameters in the wrong ratio might lead to a situation that the algorithm reaches a "saturation" (can't produce a new generation which is different from the existing one). This situation will significantly slow down the program and might even lead to a complete halt of the algorithm.
 Therefore you can abort the program at any time by pressing CTRL+C and observe the solution of the last generation that completed fully.
 
 ## Results
 
-TODO show example
+As an output, the algorithm presents two windows. The first one demonstrates the result of optimal coverage and the second one displays statistics about the algorithm.<br><br>
+For example, we ran the project using the following command:
+```
+python run.py --population 200 --generations 1000
+```
+And the results we got are:<br>
+![Result figure 2](https://github.com/romanglo/2D-LEGO-GA/blob/master/images/res_figure_2.png)
+<br>
+![Result figure 1](https://github.com/romanglo/2D-LEGO-GA/blob/master/images/res_figure_1.png)
 
 ## Extra details about the algorithm
 
@@ -78,13 +86,13 @@ TODO show example
 ![Overview of the algorithm](https://github.com/romanglo/2D-LEGO-GA/blob/master/images/overview.png)
 
 ### Crossover
-This process selects a random two different point which represent a recangle.
+This process selects a random two different point which represent a rectangle.
 Then, swaps between all the possible bricks inside the rectangle.
 To explain the crossover process, we use the following example:
 For the next two layers, randomize two points (2,2) and (7,7):
 <br>
 ![Selection before crossover](https://github.com/romanglo/2D-LEGO-GA/blob/master/images/before_crossover.jpg)
-<br>Then, swap the possible bricks: 
+<br>Then, swap the possible bricks:
 red, green and blue in first selection with grey, purple and beige from the second selection.
 <br>
 The orange and navy bricks could not swap with the black one from the other layer, because they are located partly outside of the layer.
@@ -94,7 +102,7 @@ The orange and navy bricks could not swap with the black one from the other laye
 ### Mutation
 
 There are several mutations we use:
-1. Swith a random brick with another one with different size.
+1. Switch a random brick with another one with different size.
 1. Add a random brick to a random empty location.
 1. Delete a random brick.
 1. Move a random brick to a random direction (left, right, bottom or up).
