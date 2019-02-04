@@ -304,19 +304,6 @@ def drawResultPlot(drawType: int, data: np.ndarray, covered: int):
         color="black",
     )
 
-    # font = {
-    #     'family': 'serif',
-    #     'color': 'darkred',
-    #     'weight': 'normal',
-    #     'size': 12,
-    # }
-
-    # plt.text(
-    #     1,
-    #     0.2,
-    #     ,
-    #     fontdict=font)
-
     try:
         # will work only on windows
         figManager = plt.get_current_fig_manager()
@@ -372,7 +359,8 @@ def main(argv):
         drawStatisticsPlot(resultHandler)
         drawResultPlot(dispayType, resMat, result.getCoveredArea())
         plt.show()
-
+    except KeyboardInterrupt:
+        print("\n\nProcess aborted by the user!")
     except Exception as e:
         print(
         )  # There is a chance that there was a exception in the middle of progress bar

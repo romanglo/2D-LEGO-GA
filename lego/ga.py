@@ -60,6 +60,10 @@ class LegoBrickGA(object):
         print("\nStarting genetic algorithm..")
         self.__invokeHandler(generationResultHandler, 0, population)
 
+        print(
+            "You can stop the process by pressing CTRL+C, the result until the stopping moment will be displayed."
+        )
+
         Utils.printProgressBar(
             0,
             nTimes,
@@ -67,19 +71,24 @@ class LegoBrickGA(object):
             suffix="of generations has evolved",
             fill='#')
 
-        for i in range(nTimes):
-            if population[0].getCoveredArea(
-            ) == population[0].getWidth() * population[1].getHeight():
-                # found optimal solution
-                return population[0]
-            population = self.__evolve(population)
-            Utils.printProgressBar(
-                i + 1,
-                nTimes,
-                prefix="Progress",
-                suffix="of generations has evolved",
-                fill='#')
-            self.__invokeHandler(generationResultHandler, i + 1, population)
+        try:
+            for i in range(nTimes):
+                if population[0].getCoveredArea(
+                ) == population[0].getWidth() * population[1].getHeight():
+                    # found optimal solution
+                    return population[0]
+                newPopulation = self.__evolve(population)
+                population = newPopulation  # avoid running over on cancel event
+                Utils.printProgressBar(
+                    i + 1,
+                    nTimes,
+                    prefix="Progress",
+                    suffix="of generations has evolved",
+                    fill='#')
+                self.__invokeHandler(generationResultHandler, i + 1,
+                                     population)
+        except KeyboardInterrupt:
+            print("\n\nProcess aborted by the user!")
 
         result = max(population, key=lambda item: item.getCoveredArea())
         print("Genetic algorithm finished!")
