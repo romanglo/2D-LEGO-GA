@@ -74,7 +74,7 @@ def readArguments(argv):
             elif opt == "--types_num":
                 numberOfBricksTypes = int(arg)
             elif opt == "--max_brick":
-                numberOfBricksTypes = int(arg)
+                maxBrickRibSize = int(arg)
             elif opt == "--population":
                 populationSize = int(arg)
             elif opt == "--generations":
