@@ -64,7 +64,7 @@ For example,
 python run.py --width 100 --height 100 --types_num 8 --max_brick 7 --population 200 --generations 1000 --mutation 0.3 --verbose 0 --color 1
 ```
 
-**Importent Note!** Inserting parameters in the wrong ratio might lead to a situation that the algorithm reaches a "saturation" (can't produce a new generation which is different from the existing one). This situation will significantly slow down the program and might even lead to a complete halt. 
+**Importent Note!** Inserting parameters in the wrong ratio might lead to a situation that the algorithm reaches a "saturation" (can't produce a new generation which is different from the existing one). This situation will significantly slow down the program and might even lead to a complete halt of the algorithm. 
 Therefore you can abort the program at any time by pressing CTRL+C and observe the solution of the last generation that completed fully.
 
 ## Results
