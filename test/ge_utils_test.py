@@ -53,7 +53,8 @@ class GaUtils_Test(unittest.TestCase):
     def test_addMutationToFullLayer(self):
         width, height = 5, 5
         collection = LegoBrickCollection()
-        collection.initialize(width * height * 2, [LegoBrick(1, 1)], uniform=True)
+        collection.initialize(
+            width * height * 2, [LegoBrick(1, 1)], uniform=True)
         self.assertTrue(collection.isInitialized())
         layout = LegoBrickLayout()
         layout.initialize(width, height, collection)
@@ -107,52 +108,6 @@ class GaUtils_Test(unittest.TestCase):
     def test_manyRemoveMutation(self):
         for _ in range(GaUtils_Test.__manyTestValue):
             self.test_removeMutation()
-
-    def test_crossAndConstraints1x1(self):
-        width = 5
-        height = 5
-        collection = LegoBrickCollection()
-        collection.initialize(width * height, [LegoBrick(1, 1)], uniform=True)
-        self.assertTrue(collection.isInitialized())
-        layout = LegoBrickLayout()
-        layout.initialize(width, height, collection)
-        self.assertTrue(layout.isInitialized())
-        xRange = (1, 3)
-        yRange = (1, 3)
-        cross, constraint = GaUtils.getCrossAndConstraints(
-            xRange, yRange, layout, False)
-        expectedSize = (xRange[1] - xRange[0] + 1) * (
-            yRange[1] - yRange[0] + 1)
-        self.assertEqual(len(cross), expectedSize)
-        self.assertEqual(len(constraint), 0)
-
-    def test_crossAndConstraints2x2(self):
-        width = 5
-        height = 5
-        collection = LegoBrickCollection()
-        collection.initialize(width * height, [LegoBrick(2, 2)], uniform=True)
-        self.assertTrue(collection.isInitialized())
-        layout = LegoBrickLayout()
-        layout.initialize(width, height, collection)
-        self.assertTrue(layout.isInitialized())
-        xRange = (0, 1)
-        yRange = (0, 1)
-        cross, constraint = GaUtils.getCrossAndConstraints(
-            xRange, yRange, layout, False)
-        self.assertEqual(len(cross), 1)
-        self.assertEqual(len(constraint), 0)
-        xRange = (2, 3)
-        yRange = (2, 3)
-        cross, constraint = GaUtils.getCrossAndConstraints(
-            xRange, yRange, layout, False)
-        self.assertEqual(len(cross), 1)
-        self.assertEqual(len(constraint), 0)
-        xRange = (1, 2)
-        yRange = (1, 2)
-        cross, constraint = GaUtils.getCrossAndConstraints(
-            xRange, yRange, layout, False)
-        self.assertEqual(len(cross), 0)
-        self.assertEqual(len(constraint), 4)
 
     def __createBrickLayout(self, width: int, height: int) -> LegoBrickLayout:
         bricks = []

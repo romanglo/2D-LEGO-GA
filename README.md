@@ -28,7 +28,12 @@ pip install -r requirements.txt
 
 ### Running the tests
 
-TODO Add description how to run the tests
+You can run all tests using:
+```
+python tests.py
+```
+in root directory.<br>
+The tests check the dependencies and runs some unit tests.
 
 ### Running the project
 
@@ -74,13 +79,13 @@ Then, swaps between all the possible bricks inside the rectangle.
 To explain the crossover process, we use the following example:
 For the next two layers, randomize two points (2,2) and (7,7):
 <br>
-![Selection before crossover](https://github.com/romanglo/2D-LEGO-GA/blob/master/images/before_crossover.png.jpg)
+![Selection before crossover](https://github.com/romanglo/2D-LEGO-GA/blob/master/images/before_crossover.jpg)
 <br>Then, swap the possible bricks: 
 red, green and blue in first selection with grey, purple and beige from the second selection.
 <br>
 The orange and navy bricks could not swap with the black one from the other layer, because they are located partly outside of the layer.
 <br>
-![Selection before crossover](https://github.com/romanglo/2D-LEGO-GA/blob/master/images/after_crossover.png.jpg)
+![Selection before crossover](https://github.com/romanglo/2D-LEGO-GA/blob/master/images/after_crossover.jpg)
 
 ### Mutation
 
