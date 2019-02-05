@@ -79,6 +79,17 @@ We stopped the process after 1113 generations and got the next result:<br><br>
 <br>
 ![Result figure 1](https://github.com/romanglo/2D-LEGO-GA/blob/master/images/res_figure_1.png)
 
+<br><br>
+Another example, when executing the next command:
+```
+python run.py --population 300 --generations 2000 --max_brick 20 --types_num 20 --width 50 --height 50
+```
+We stopped the process after 987 generations and got the following results:<br><br>
+![Result figure 2](https://github.com/romanglo/2D-LEGO-GA/blob/master/images/Generation1000Figure_2.png)
+<br>
+![Result figure 1](https://github.com/romanglo/2D-LEGO-GA/blob/master/images/Generation1000Figure_1.png)
+
+
 ## Extra details about the algorithm
 
 ### Overview
