@@ -1,8 +1,8 @@
 # Genetic Algorithm Solution to 2D-LEGO Coverage Problem
-The project suggests a solution to 2D-LEGO brick layout problem using genetic algorithm.
+The project suggests a solution to 2D-LEGO brick layout problem using a genetic algorithm.
 
 In general, 2D-LEGO brick layout problem is a combinatorial optimization problem with the following details:<br>
-When given a layer with the size WxH and a bag of LEGO bricks, we want to find the optimal arrangement of the bricks on a paper to receive a maximum coverage.<br>
+When given a layer with the size WxH and a bag of LEGO bricks, we want to find the optimal arrangement of the bricks on a paper to receive maximum coverage.<br>
 
 ## Getting Started
 
