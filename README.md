@@ -110,7 +110,7 @@ There are several mutations we use:
 ## Authors
 
 * **Roman Glozman** - [romanglo](https://github.com/romanglo)
-* **Yoni Shpund** - [ShpundYoni](https://github.com/ShpundYoni)
+* **Yoni Shpund** - [YoniShpund](https://github.com/YoniShpund)
 * **Ariel Ya'akov** - [ariel3081](https://github.com/ariel3081)
 
 ## License
